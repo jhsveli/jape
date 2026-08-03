@@ -13,15 +13,16 @@ import javax.swing.*;
 //import java.io.File;
 //import java.io.IOException;
 
-public class JapeAbout extends Dialog {
-    public JapeAbout(Frame parent)
+public class JapeAbout extends JDialog {
+    public JapeAbout(Component parent)
     {
-	super(parent, "About JAPE", true);
+	super(SwingUtilities.getWindowAncestor(parent), "About JAPE",
+	      Dialog.ModalityType.APPLICATION_MODAL);
 
 	// Create body panel
-	Panel body = new Panel();
+	JPanel body = new JPanel();
 	body.setLayout(new BorderLayout());
-	this.add(body);
+	this.setContentPane(body);
 
 	// Add icon
 
@@ -30,19 +31,19 @@ public class JapeAbout extends Dialog {
 	textPanel.setLayout(new GridLayout(4,1));
 	textPanel.setBackground(SystemColor.text);
 
-	Label line1 = new Label("JAPE: A Jagged Alliance 2 Save Game Editor", Label.CENTER);
+	JLabel line1 = new JLabel("JAPE: A Jagged Alliance 2 Save Game Editor", SwingConstants.CENTER);
 	textPanel.add(line1);
-	Label line2 = new Label("Version 0.41", Label.CENTER);
+	JLabel line2 = new JLabel("Version 0.41", SwingConstants.CENTER);
 	textPanel.add(line2);
-	Label line3 = new Label("Copyright (c) 2008  Douglas Greiman", Label.CENTER);
+	JLabel line3 = new JLabel("Copyright (c) 2008  Douglas Greiman", SwingConstants.CENTER);
 	textPanel.add(line3);
-	Label line4 = new Label("http://www.duggelz.org/", Label.CENTER);
+	JLabel line4 = new JLabel("http://www.duggelz.org/", SwingConstants.CENTER);
 	textPanel.add(line4);
 
 	// Button bar
 	JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
 	buttonPanel.setLayout(new FlowLayout());
-	Button okButton = new Button("OK");
+	JButton okButton = new JButton("OK");
 	okButton.addActionListener( new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    dispose();
@@ -50,8 +51,8 @@ public class JapeAbout extends Dialog {
 	buttonPanel.add(okButton);
 
 	// Add elements to dialog
-	body.add(buttonPanel, "South");
-	body.add(textPanel, "Center");
+	body.add(buttonPanel, BorderLayout.SOUTH);
+	body.add(textPanel, BorderLayout.CENTER);
 
 	// Handle window events
 	this.addWindowListener(new WindowAdapter() {
@@ -59,8 +60,6 @@ public class JapeAbout extends Dialog {
 		    dispose();
 		}});
 
-	// Instantiate peers for the size calculation below
-	this.addNotify();
 	this.pack();
 
 	// Put this dialog in the center of the parent frame

@@ -24,3 +24,20 @@ can be loaded.
 An item fitted to a weapon or armor. Weapons take weapon attachments
 (WEAPON_ATTACHMENT_CATEGORY); body armor takes armor attachments
 (ARMOR_ATTACHMENT_CATEGORY, i.e. ceramic plates).
+
+**Active**:
+The group of mercenaries in the actor tree (labeled "Active") that
+have an active SOLDIERTYPE record in the save game, i.e. the mercs
+actually on the squad. Determined by joining actor nicknames to the
+merc records.
+
+**Recruitable**:
+The group of mercenaries in the actor tree that can be hired or
+recruited during a campaign: the AIM and MERC agency rosters (the
+first 51 MERCPROFILE entries, through Bubba) plus a hand-curated list
+of rebel and special RPC nicknames. Kept as nicknames in source so the
+list survives across saves.
+
+**Other actors**:
+The actor-tree group for every remaining MERCPROFILE: NPCs, enemies,
+and unused profile slots.

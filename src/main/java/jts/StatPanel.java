@@ -15,7 +15,7 @@ import java.util.Enumeration;
 public class StatPanel extends InsetPanel implements DataChangeListener
 {
     // Gui Elements
-    private Frame parent;
+    private Component parent;
     private GridBagLayout layout = new GridBagLayout();
     private GridBagConstraints constraint = new GridBagConstraints();
 
@@ -30,7 +30,7 @@ public class StatPanel extends InsetPanel implements DataChangeListener
     private Vector views = new Vector();
 
     // Instance methods
-    public StatPanel(Frame parent)
+    public StatPanel(Component parent)
     {
 	super(new Insets(10,10,10,10));
 	this.parent = parent;

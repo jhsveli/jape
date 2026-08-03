@@ -15,7 +15,7 @@ import java.util.Vector;
 public class ItemPanel extends InsetPanel implements DataChangeListener
 {
     // Gui Elements
-    private Frame parent;
+    private Component parent;
     private GridBagLayout layout = new GridBagLayout();
     private GridBagConstraints constraint = new GridBagConstraints();
     private ItemDetailPanel itemDetailPanel;
@@ -52,7 +52,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private Color defaultBackground;
 
     // Instance methods
-    public ItemPanel(Frame parent)
+    public ItemPanel(Component parent)
     {
 	super(new Insets(10,10,10,10));
 	this.parent = parent;

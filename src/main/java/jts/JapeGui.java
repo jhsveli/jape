@@ -17,7 +17,7 @@ public class JapeGui {
 	JapeFrame japeFrame = new JapeFrame();
 	
 	// Make frame visible
-	japeFrame.show();
+	japeFrame.setVisible(true);
 
 	// Open a save
 	//japeFrame.doOpen();

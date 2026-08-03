@@ -12,7 +12,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.util.StringTokenizer;
 
-public class OptionDialog extends Dialog 
+public class OptionDialog extends JDialog 
 {
     // Option types
     public static final int         DEFAULT_OPTION = -1;
@@ -53,13 +53,14 @@ public class OptionDialog extends Dialog
     private int value = CLOSED_OPTION;
 
     public OptionDialog(
-	Frame parent,
+	Component parent,
 	Object message,
 	String title,
 	int optionType,
 	int messageType)
     {
-	super(parent, title, true);
+	super(SwingUtilities.getWindowAncestor(parent), title,
+	      Dialog.ModalityType.APPLICATION_MODAL);
 
 	// Set fields
 	this.optionType = optionType;
@@ -67,9 +68,9 @@ public class OptionDialog extends Dialog
 	this.value = CLOSED_OPTION;
 
 	// Create body panel
-	Panel body = new Panel();
+	JPanel body = new JPanel();
 	body.setLayout(new BorderLayout());
-	this.add(body);
+	this.setContentPane(body);
 
 	// Add icon
 
@@ -85,7 +86,7 @@ public class OptionDialog extends Dialog
 	while( st.hasMoreTokens() )
 	{
 	    String line = st.nextToken();
-	    Label label = new Label(line, Label.LEFT);
+	    JLabel label = new JLabel(line, SwingConstants.LEFT);
 	    textPanel.add(label);
 	}
 
@@ -97,7 +98,7 @@ public class OptionDialog extends Dialog
 	if( this.optionType == OK_ONLY_OPTION || 
 	    this.optionType == OK_CANCEL_OPTION )
 	{
-	    Button button = new Button("OK");
+	    JButton button = new JButton("OK");
 	    button.addActionListener( new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			setValue(OK_OPTION);
@@ -107,7 +108,7 @@ public class OptionDialog extends Dialog
 	if( this.optionType == YES_NO_OPTION || 
 	    this.optionType == YES_NO_CANCEL_OPTION )
 	{
-	    Button button = new Button("Yes");
+	    JButton button = new JButton("Yes");
 	    button.addActionListener( new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			setValue(YES_OPTION);
@@ -117,7 +118,7 @@ public class OptionDialog extends Dialog
 	if( this.optionType == YES_NO_OPTION || 
 	    this.optionType == YES_NO_CANCEL_OPTION )
 	{
-	    Button button = new Button("No");
+	    JButton button = new JButton("No");
 	    button.addActionListener( new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			setValue(NO_OPTION);
@@ -127,7 +128,7 @@ public class OptionDialog extends Dialog
 	if( this.optionType == OK_CANCEL_OPTION || 
 	    this.optionType == YES_NO_CANCEL_OPTION )
 	{
-	    Button button = new Button("Cancel");
+	    JButton button = new JButton("Cancel");
 	    button.addActionListener( new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 			setValue(CANCEL_OPTION);
@@ -136,8 +137,8 @@ public class OptionDialog extends Dialog
 	}
 
 	// Add elements to dialog
-	body.add(buttonPanel, "South");
-	body.add(textPanel, "Center");
+	body.add(buttonPanel, BorderLayout.SOUTH);
+	body.add(textPanel, BorderLayout.CENTER);
 
 	// Handle window events
 	this.addWindowListener(new WindowAdapter() {
@@ -145,8 +146,6 @@ public class OptionDialog extends Dialog
 		    dispose();
 		}});
 
-	// Instantiate peers for the size calculation below
-	this.addNotify();
 	this.pack();
 
 	// Put this dialog in the center of the parent frame
@@ -175,7 +174,7 @@ public class OptionDialog extends Dialog
     }
 
     public static void showMessageDialog(
-	Frame parent,
+	Component parent,
 	Object message,
 	String title,
 	int messageType)
@@ -186,11 +185,11 @@ public class OptionDialog extends Dialog
 	    title, 
 	    DEFAULT_OPTION, 
 	    messageType);
-	dialog.show();
+	dialog.setVisible(true);
     }
 
     public static int showConfirmDialog(
-	Frame parent, 
+	Component parent, 
 	Object message,
 	String title, 
 	int optionType,
@@ -202,7 +201,7 @@ public class OptionDialog extends Dialog
 	    title, 
 	    optionType, 
 	    messageType);
-	dialog.show();
+	dialog.setVisible(true);
 	return dialog.getValue();
     }
 }

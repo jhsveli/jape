@@ -10,27 +10,33 @@ package jts;/*
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.filechooser.*;
+import javax.swing.tree.*;
+import java.util.HashSet;
+import java.util.Set;
 
-public class JapeFrame extends Frame implements DataChangeListener
+public class JapeFrame extends JFrame implements DataChangeListener
 {
     private static final int DEFAULT_WIDTH = 450;
     private static final int DEFAULT_HEIGHT = 450;
 
     // Major GUI elements
     private GridBagLayout layout = new GridBagLayout();
-    private List      actorList;
+    private JTree     actorTree;
     private StatPanel statPanel;
     private ItemPanel itemPanel;
 
     // Menu
-    private MenuBar   menuBar;
-    private Menu      fileMenu;
-    private MenuItem  openItem;
-    private MenuItem  saveItem;
-    private MenuItem  closeItem;
-    private MenuItem  quitItem;
-    private Menu      helpMenu;
-    private MenuItem  aboutItem;
+    private JMenuBar  menuBar;
+    private JMenu     fileMenu;
+    private JMenuItem openItem;
+    private JMenuItem saveItem;
+    private JMenuItem closeItem;
+    private JMenuItem quitItem;
+    private JMenu     helpMenu;
+    private JMenuItem aboutItem;
 
     // The save game engine
     private SaveGame saveGame;
@@ -47,23 +53,28 @@ public class JapeFrame extends Frame implements DataChangeListener
 	this.createMenuBar();
 
 	// Create body panel
-	Panel body = new Panel();
+	JPanel body = new JPanel();
 	body.setLayout(this.layout);
-	this.add("Center", body);
+	this.setContentPane(body);
 
-	// Create actor list
-	this.actorList = new List();
-	this.actorList.addItemListener(new ItemListener() {
-		public void itemStateChanged(ItemEvent e) {
+	// Create actor tree
+	this.actorTree = new JTree(new DefaultTreeModel(buildActorTree(null)));
+	this.actorTree.getSelectionModel().setSelectionMode(
+	    TreeSelectionModel.SINGLE_TREE_SELECTION);
+	this.actorTree.setRootVisible(false);
+	this.actorTree.setShowsRootHandles(true);
+	this.actorTree.addTreeSelectionListener(new TreeSelectionListener() {
+		public void valueChanged(TreeSelectionEvent e) {
 		    doSelectActor();
 		}});
+	JScrollPane actorScroll = new JScrollPane(this.actorTree);
 	GridBagConstraints c1 = new GridBagConstraints();
 	c1.fill = c1.BOTH;
 	c1.gridx = 0;
 	c1.gridy = 0;
 	c1.weighty = 1;
 	c1.weightx = 0;
-	body.add(this.actorList, c1);
+	body.add(actorScroll, c1);
 
 	// Create stat panel
 	this.statPanel = new StatPanel(this);
@@ -113,20 +124,20 @@ public class JapeFrame extends Frame implements DataChangeListener
     
     private void createMenuBar() {
 	// Create menu bar
-	this.menuBar = new MenuBar();
+	this.menuBar = new JMenuBar();
 
 	// File menu
-	this.fileMenu = new Menu("File");
+	this.fileMenu = new JMenu("File");
 	this.menuBar.add(this.fileMenu);
 
-	this.openItem = new MenuItem("Open...");
+	this.openItem = new JMenuItem("Open...");
 	this.openItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    doOpen();
 		}});
 	this.fileMenu.add(this.openItem);
 
-	this.saveItem = new MenuItem("Save");
+	this.saveItem = new JMenuItem("Save");
 	this.saveItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    doSave();
@@ -134,7 +145,7 @@ public class JapeFrame extends Frame implements DataChangeListener
 	this.fileMenu.add(this.saveItem);
 	this.saveItem.setEnabled(false);
 
-	this.closeItem = new MenuItem("Close");
+	this.closeItem = new JMenuItem("Close");
 	this.closeItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    doClose();
@@ -144,7 +155,7 @@ public class JapeFrame extends Frame implements DataChangeListener
 
 	this.fileMenu.addSeparator();
 
-	this.quitItem = new MenuItem("Quit");
+	this.quitItem = new JMenuItem("Quit");
 	this.quitItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    doQuit();
@@ -152,11 +163,10 @@ public class JapeFrame extends Frame implements DataChangeListener
 	this.fileMenu.add(this.quitItem);
 
 	// About menu
-	this.helpMenu = new Menu("Help");
+	this.helpMenu = new JMenu("Help");
 	this.menuBar.add(this.helpMenu);
-	this.menuBar.setHelpMenu(this.helpMenu);
 
-	this.aboutItem = new MenuItem("About...");
+	this.aboutItem = new JMenuItem("About...");
 	this.aboutItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    doAbout();
@@ -164,11 +174,11 @@ public class JapeFrame extends Frame implements DataChangeListener
 	this.helpMenu.add(this.aboutItem);
 	
 	// Attach menubar to frame
-	this.setMenuBar(this.menuBar);
+	this.setJMenuBar(this.menuBar);
     }
 
     public boolean doAbout() {
-	new JapeAbout(this).show();
+	new JapeAbout(this).setVisible(true);
 	return true;
     }
 
@@ -216,24 +226,23 @@ public class JapeFrame extends Frame implements DataChangeListener
 	    return false;
 	}
 
-	// Create open file dialog
-	FileDialog fileDialog = new FileDialog(this, "Open", FileDialog.LOAD);
+	// Create open file chooser
+	JFileChooser fileChooser = new JFileChooser();
 	if( this.currentDir != null ) {
-	    fileDialog.setDirectory(this.currentDir);
+	    fileChooser.setCurrentDirectory(new File(this.currentDir));
 	}
+	fileChooser.setFileFilter(new FileNameExtensionFilter("Save games", "sav"));
 
-	// Show dialog
-	fileDialog.setFile("*.sav");
-	fileDialog.show();
+	// Show chooser
+	int result = fileChooser.showOpenDialog(this);
 
 	// What did the user choose?
-	String directory = fileDialog.getDirectory();
-	String name = fileDialog.getFile();
-	if( name == null ) {
+	if( result != JFileChooser.APPROVE_OPTION ) {
 	    return false;
 	}
-	this.currentDir = directory;
-	String filename = new File(directory, name).toString();
+	File file = fileChooser.getSelectedFile();
+	this.currentDir = file.getParent();
+	String filename = file.getPath();
 
 	// Open the selected file
 	SaveGame saveGame = new SaveGame();
@@ -298,7 +307,12 @@ public class JapeFrame extends Frame implements DataChangeListener
 
 	// Select the first actor
 	this.populateActorList();
-	this.actorList.select(0);
+	DefaultMutableTreeNode root =
+	    (DefaultMutableTreeNode) this.actorTree.getModel().getRoot();
+	DefaultMutableTreeNode first = findActorNode(root, 0);
+	if ( first != null ) {
+	    this.actorTree.setSelectionPath(new TreePath(first.getPath()));
+	}
 	this.doSelectActor();
 	this.saveGameModified = false;
 
@@ -357,19 +371,23 @@ public class JapeFrame extends Frame implements DataChangeListener
 
     private boolean doSelectActor()
     {
-	// Which name did the user select
-	int idx = this.actorList.getSelectedIndex();
-
-	// Lookup that actor in the save
+	// Which node did the user select
 	Actor actor = null;
 	Mercenary merc = null;
-	if ( idx != -1 )
+	Object selected = this.actorTree.getLastSelectedPathComponent();
+	if ( selected instanceof DefaultMutableTreeNode )
 	{
-	    // Get actor and/or merc
-	    actor = this.saveGame.getActor(idx);
-	    String nickname = actor.get("Nickname");
-	    merc = this.saveGame.getMercByNick(nickname);
-	}	    
+	    Object payload =
+		((DefaultMutableTreeNode) selected).getUserObject();
+	    if ( payload instanceof ActorNode )
+	    {
+		ActorNode node = (ActorNode) payload;
+		// Get actor and/or merc
+		actor = this.saveGame.getActor(node.index);
+		String nickname = actor.get("Nickname");
+		merc = this.saveGame.getMercByNick(nickname);
+	    }
+	}
 
 	// Do it
 	this.doSetActor(actor, merc);
@@ -386,10 +404,179 @@ public class JapeFrame extends Frame implements DataChangeListener
 	this.itemPanel.setActor(this.currentActor, this.currentMerc);
     }
 
+    // == Actor tree grouping ==
+
+    /** Classification of a profile in the actor tree. */
+    static final int ROSTER = 0;
+    static final int RECRUITABLE = 1;
+    static final int OTHER = 2;
+
+    static final String ROSTER_GROUP = "Active";
+    static final String RECRUITABLE_GROUP = "Recruitable";
+    static final String OTHER_GROUP = "Other actors";
+
+    /**
+     * Profiles considered recruitable: the first 51 MERCPROFILE entries
+     * (the AIM and MERC agency rosters, down to and including Bubba at
+     * profile index 50), followed by hand-picked rebel and special RPC
+     * nicknames.  Extracted from the MERCPROFILESTRUCT list of a save
+     * game and kept as nicknames so the list survives across saves.
+     */
+    static final String[] RECRUITABLE_NICKNAMES = {
+	// AIM + MERC rosters, in profile order, through Bubba (index 50)
+	"Barry", "Blood", "Lynx", "Grizzly", "Vicki", "Trevor", "Grunty",
+	"Ivan", "Steroid", "Igor", "Shadow", "Red", "Reaper", "Fidel",
+	"Fox", "Sidney", "Gus", "Buns", "Ice", "Spider", "Cliff", "Bull",
+	"Hitman", "Buzz", "Raider", "Raven", "Static", "Len", "Danny",
+	"Magic", "Stephen", "Scully", "Malice", "Dr. Q", "Nails", "Thor",
+	"Scope", "Wolf", "MD", "Meltdown", "Biff", "Haywire", "Gasket",
+	"Razor", "Flo", "Gumpy", "Larry", "Cougar", "Numb", "Bubba",
+	// Hand-picked rebel / special RPCs
+	"Ira", "Dimitri", "Carlos", "Miguel", "Iggy", "Maddog", "Vince",
+	"Devin", "Robot", "Hamous", "Dynamo", "Shank", "Slay", "Mike",
+	"Conrad"
+    };
+
+    private static Set<String> recruitableLookup;
+
+    private static Set<String> recruitableLookup() {
+	if ( recruitableLookup == null ) {
+	    recruitableLookup = new HashSet<String>();
+	    for( String nickname : RECRUITABLE_NICKNAMES ) {
+		recruitableLookup.add(nickname);
+	    }
+	}
+	return recruitableLookup;
+    }
+
+    /** Is this profile on the recruitable list?  Matches on nickname,
+     * and also on the full name for profiles that store the well-known
+     * name there (e.g. Slay is stored as nickname "Terry"). */
+    static boolean isRecruitable(Actor actor) {
+	String nickname = actor.get("Nickname").trim();
+	if ( recruitableLookup().contains(nickname) ) {
+	    return true;
+	}
+	String name = actor.get("Name").trim();
+	return recruitableLookup().contains(name);
+    }
+
+    /** Classify a profile: ROSTER (has an active Mercenary record),
+     * RECRUITABLE, or OTHER. */
+    static int classify(SaveGame saveGame, int idx) {
+	Actor actor = saveGame.getActor(idx);
+	String nickname = actor.get("Nickname");
+	if ( saveGame.getMercByNick(nickname) != null ) {
+	    return ROSTER;
+	}
+	if ( isRecruitable(actor) ) {
+	    return RECRUITABLE;
+	}
+	return OTHER;
+    }
+
+    /** Build the actor tree: Active / Recruitable / Other actors.
+     *  The Recruitable group follows RECRUITABLE_NICKNAMES order so the
+     *  hand-sorted list order is preserved; the other groups follow
+     *  profile order. */
+    static DefaultMutableTreeNode buildActorTree(SaveGame saveGame) {
+	DefaultMutableTreeNode root = new DefaultMutableTreeNode("Actors");
+	DefaultMutableTreeNode roster =
+	    new DefaultMutableTreeNode(ROSTER_GROUP);
+	DefaultMutableTreeNode recruitable =
+	    new DefaultMutableTreeNode(RECRUITABLE_GROUP);
+	DefaultMutableTreeNode other =
+	    new DefaultMutableTreeNode(OTHER_GROUP);
+	root.add(roster);
+	root.add(recruitable);
+	root.add(other);
+
+	if ( saveGame == null ) {
+	    return root;
+	}
+
+	// Claimed profiles, to avoid adding a profile to two groups
+	boolean[] claimed = new boolean[saveGame.actorCount];
+
+	// Roster first: active mercs win over the recruitable list
+	for( int idx = 0; idx < saveGame.actorCount; ++idx )
+	{
+	    if ( classify(saveGame, idx) == ROSTER ) {
+		roster.add(actorNode(saveGame, idx));
+		claimed[idx] = true;
+	    }
+	}
+
+	// Recruitable, in the hand-sorted list order
+	for( String entry : RECRUITABLE_NICKNAMES )
+	{
+	    for( int idx = 0; idx < saveGame.actorCount; ++idx )
+	    {
+		if ( claimed[idx] ) {
+		    continue;
+		}
+		Actor actor = saveGame.getActor(idx);
+		if ( entry.equals(actor.get("Nickname").trim()) ||
+		     entry.equals(actor.get("Name").trim()) ) {
+		    recruitable.add(actorNode(saveGame, idx));
+		    claimed[idx] = true;
+		}
+	    }
+	}
+
+	// Everything else, in profile order
+	for( int idx = 0; idx < saveGame.actorCount; ++idx )
+	{
+	    if ( ! claimed[idx] ) {
+		other.add(actorNode(saveGame, idx));
+	    }
+	}
+	return root;
+    }
+
+    private static DefaultMutableTreeNode actorNode(SaveGame saveGame, int idx)
+    {
+	Actor actor = saveGame.getActor(idx);
+	return new DefaultMutableTreeNode(
+	    new ActorNode(idx, actor.get("Nickname")));
+    }
+
+    /** First leaf with the given profile index (depth first). */
+    private static DefaultMutableTreeNode findActorNode(
+	DefaultMutableTreeNode node, int index)
+    {
+	Object payload = node.getUserObject();
+	if ( payload instanceof ActorNode ) {
+	    return (((ActorNode) payload).index == index) ? node : null;
+	}
+	for( int i = 0; i < node.getChildCount(); ++i ) {
+	    DefaultMutableTreeNode found = findActorNode(
+		(DefaultMutableTreeNode) node.getChildAt(i), index);
+	    if ( found != null ) {
+		return found;
+	    }
+	}
+	return null;
+    }
+
+    /** Leaf payload: profile index (for lookup) and nickname (display). */
+    static class ActorNode {
+	final int index;
+	final String nickname;
+	ActorNode(int index, String nickname) {
+	    this.index = index;
+	    this.nickname = nickname;
+	}
+	public String toString() {
+	    return nickname;
+	}
+    }
+
     private void populateActorList()
     {
-	// Clear all entries
-	this.actorList.removeAll();
+	// Rebuild the tree from the current save game
+	this.actorTree.setModel(
+	    new DefaultTreeModel(buildActorTree(this.saveGame)));
 	this.doSetActor(null, null);
 
 	// Game loaded?
@@ -397,22 +584,16 @@ public class JapeFrame extends Frame implements DataChangeListener
 	    return;
 	}
 
-	// Iterator over actors in the save game
-	for( int idx = 0; idx < this.saveGame.actorCount; ++idx )
+	// Roster and Recruitable start expanded; Other actors collapsed
+	DefaultMutableTreeNode root =
+	    (DefaultMutableTreeNode) this.actorTree.getModel().getRoot();
+	for( int idx = 0; idx < root.getChildCount(); ++idx )
 	{
-	    // Get actor
-	    Actor actor = this.saveGame.getActor(idx);
-	    String nickname = actor.get("Nickname");
-
-	    // Is there an associated merc record?
-	    Mercenary merc = this.saveGame.getMercByNick(nickname);
-	    if ( merc != null )
-	    {
-		nickname = "*" + nickname;
+	    DefaultMutableTreeNode group =
+		(DefaultMutableTreeNode) root.getChildAt(idx);
+	    if ( ! OTHER_GROUP.equals(group.getUserObject()) ) {
+		this.actorTree.expandPath(new TreePath(group.getPath()));
 	    }
-	    
-	    // Add actor nickname to list
-	    this.actorList.add(nickname);
 	}
     }
 
@@ -427,7 +608,7 @@ public class JapeFrame extends Frame implements DataChangeListener
 	JapeFrame japeFrame = new JapeFrame();
 	
 	// Make frame visible
-	japeFrame.show();
+	japeFrame.setVisible(true);
 
 	// Open a save
 	//japeFrame.doOpen();

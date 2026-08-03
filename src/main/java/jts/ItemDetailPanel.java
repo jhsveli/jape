@@ -16,7 +16,7 @@ import java.util.Enumeration;
 public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 {
     // Gui Elements
-    private Frame parent;
+    private Component parent;
     private GridBagLayout layout = new GridBagLayout();
     private GridBagConstraints constraint = new GridBagConstraints();
 
@@ -51,7 +51,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
     private JNumberView moneyValueView;
 
     // Instance methods
-    public ItemDetailPanel(Frame parent)
+    public ItemDetailPanel(Component parent)
     {
 	super(new Insets(10,10,10,10));
 	this.parent = parent;
