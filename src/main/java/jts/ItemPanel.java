@@ -46,7 +46,13 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
 	this.constraint.weightx = 1;
 	this.constraint.insets = new Insets(0,0,0,0);
 
-	// Add buttons for item slots
+	// Add group headings for the equipment slots
+	this.newRow();
+	this.addHeading(1, "Headgear");
+	this.addSpace();
+	this.addHeading(1, "Armor");
+
+	// Headgear (first column, rows 1-2)
 	this.newRow();
 	this.addItem(Mercenary.HEADGEAR_1_INDEX);
 	this.addSpace();
@@ -57,13 +63,21 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
 	this.addSpace();
 	this.addItem(Mercenary.BODY_ARMOR_INDEX);
 	
+	// Hands (first column, rows 3-4)
 	this.newRow();
-	this.addItem(Mercenary.RIGHT_HAND_INDEX);
+	this.addHeading(1, "Hands");
 	this.addSpace();
 	this.addItem(Mercenary.LEG_ARMOR_INDEX);
 
 	this.newRow();
+	this.addItem(Mercenary.RIGHT_HAND_INDEX);
+
+	this.newRow();
 	this.addItem(Mercenary.LEFT_HAND_INDEX);
+
+	// Backpack (lower 4 rows by 3 columns)
+	this.newRow();
+	this.addHeading(3, "Backpack");
 
 	this.newRow();
 	this.addItem(Mercenary.BACKPACK_1_1_INDEX);
@@ -113,6 +127,13 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private void addSpace() 
     {
 	this.constraint.gridx++;
+    }
+
+    private void addHeading(int colwidth, String text)
+    {
+	// Add group heading label
+	Label label = new Label(text, Label.LEFT);
+	this.addComponent(colwidth, label);
     }
 
     private void addItem(final int index) 
