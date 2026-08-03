@@ -163,8 +163,14 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
     private JNumberView addNumberView(int colwidth, String statField, int charWidth)
     {
 	JNumberView view = new JNumberView(statField, charWidth);
-	this.constraint.fill = this.constraint.NONE;
+	// Input cells take weight and horizontal fill so they shrink
+	// gradually when the panel is narrower than preferred, instead of
+	// snapping to the tiny JTextField minimum (same fix as StatPanel).
+	this.constraint.fill = this.constraint.HORIZONTAL;
+	this.constraint.weightx = 1;
 	this.addComponent(colwidth, view);
+	this.constraint.fill = this.constraint.NONE;
+	this.constraint.weightx = 0;
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
 	return view;
@@ -172,19 +178,13 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 
     private JLabel addText(int colwidth, String text) 
     {
-	return this.addText(colwidth, text, Label.LEFT);
+	return this.addText(colwidth, text, SwingConstants.LEFT);
     }
 
     private JLabel addText(int colwidth, String text, int align) 
     {
-	// Create new label (map the AWT alignment constant to Swing)
-	int swingAlign = SwingConstants.LEFT;
-	if( align == Label.CENTER ) {
-	    swingAlign = SwingConstants.CENTER;
-	} else if( align == Label.RIGHT ) {
-	    swingAlign = SwingConstants.RIGHT;
-	}
-	JLabel label = new JLabel(text, swingAlign);
+	// Create new label
+	JLabel label = new JLabel(text, align);
 	this.constraint.fill = this.constraint.HORIZONTAL;
 	this.addComponent(colwidth, label);
 	return label;
@@ -204,7 +204,12 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
     {
 	// Create new view
 	JChoiceView view = new JChoiceView(statField, statChoices);
+	// Combos get weight and a smaller minimum so they share the shrink
+	// with the number cells when the panel is narrow; a combo that keeps
+	// its full width (JComboBox min == preferred) would force the rest
+	// of its row to snap to minimum.
 	this.constraint.fill = this.constraint.HORIZONTAL;
+	this.constraint.weightx = 1;
 	this.addComponent(colwidth, view);
 	this.views.addElement(view);
 	view.addDataChangeListener(this);

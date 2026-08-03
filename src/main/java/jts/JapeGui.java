@@ -7,12 +7,17 @@
 
 package jts;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+
 public class JapeGui {
     private static final int DEFAULT_WIDTH = 130;
     private static final int DEFAULT_HEIGHT = 188;
 
     public static void main(String[] args) 
     {
+	// Install the FlatLaf Darcula look and feel
+	FlatDarculaLaf.setup();
+
 	// Create frame
 	JapeFrame japeFrame = new JapeFrame();
 	

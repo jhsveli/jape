@@ -19,7 +19,11 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private GridBagLayout layout = new GridBagLayout();
     private GridBagConstraints constraint = new GridBagConstraints();
     private ItemDetailPanel itemDetailPanel;
-    private static final Color SELECTED_BACKGROUND = new Color(255, 255, 153);
+    /** Selection highlight for the currently selected item button.
+     *  Uses the L&F selection color (the standard light-blue highlight
+     *  in Darcula) instead of the old hardcoded light yellow, which
+     *  clashed with the dark theme. */
+    private static final Color SELECTED_BACKGROUND = selectionBackground();
 
     // State machine
     private boolean modified = false;
@@ -44,6 +48,16 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
 	    return null;
 	}
 	return SLOT_CATEGORY[slotIndex];
+    }
+
+    private static Color selectionBackground()
+    {
+	Color color = UIManager.getColor("List.selectionBackground");
+	if( color == null ) {
+	    // Fallback: FlatLaf Darcula's selection blue
+	    color = new Color(75, 110, 175);
+	}
+	return color;
     }
 
     // Data Views

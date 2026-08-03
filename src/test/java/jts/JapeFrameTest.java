@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -177,8 +178,9 @@ public class JapeFrameTest
 	tree.setRootVisible(false);
 	tree.setShowsRootHandles(true);
 	JScrollPane actorScroll = new JScrollPane(tree);
-	// Mirrors JapeFrame: floor the tree column width so it cannot
-	// collapse to its tiny default minimum when space is tight.
+	// Mirrors JapeFrame: edge spacing on the tree column and a floor on
+	// its width so it cannot collapse to the tiny default minimum.
+	actorScroll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
 	actorScroll.setMinimumSize(new Dimension(135, 0));
 	StatPanel statPanel = new StatPanel(null);
 	ItemPanel itemPanel = new ItemPanel(null);

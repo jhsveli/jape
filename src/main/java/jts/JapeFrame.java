@@ -7,6 +7,7 @@ package jts;/*
 
  
 
+import com.formdev.flatlaf.FlatDarculaLaf;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -68,6 +69,10 @@ public class JapeFrame extends JFrame implements DataChangeListener
 		    doSelectActor();
 		}});
 	JScrollPane actorScroll = new JScrollPane(this.actorTree);
+	// Match the 10px edge spacing of the stat/item panels on the
+	// window's left, top, and bottom; the right side stays 0 so the
+	// gap to the stat panel is unchanged.
+	actorScroll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
 	// Floor the tree column width so it never collapses to its tiny
 	// default minimum (~22px) when the window is narrower than the
 	// preferred width; nicknames stay readable even at small sizes.
@@ -608,6 +613,9 @@ public class JapeFrame extends JFrame implements DataChangeListener
     // Class methods
     public static void main(String[] args) 
     {
+	// Install the FlatLaf Darcula look and feel
+	FlatDarculaLaf.setup();
+
 	// Create frame
 	JapeFrame japeFrame = new JapeFrame();
 	

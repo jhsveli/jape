@@ -29,7 +29,7 @@ public class JapeAbout extends JDialog {
 	// Text Panel
 	JPanel textPanel = new InsetPanel(5, 5, 5, 5);
 	textPanel.setLayout(new GridLayout(4,1));
-	textPanel.setBackground(SystemColor.text);
+	textPanel.setBackground(UIManager.getColor("Panel.background"));
 
 	JLabel line1 = new JLabel("JAPE: A Jagged Alliance 2 Save Game Editor", SwingConstants.CENTER);
 	textPanel.add(line1);

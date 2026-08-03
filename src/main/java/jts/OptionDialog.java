@@ -77,7 +77,7 @@ public class OptionDialog extends JDialog
 	// Text Panel
 	JPanel textPanel = new InsetPanel(5, 5, 5, 5);
 	textPanel.setLayout(new GridLayout(0,1));
-	textPanel.setBackground(SystemColor.text);
+	textPanel.setBackground(UIManager.getColor("Panel.background"));
 
 	// Create various lines of text
 	String messageStr = message.toString();

@@ -9,9 +9,11 @@ package jts;
 import static org.junit.Assert.*;
 
 import java.awt.Color;
+import java.io.File;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 import org.junit.Test;
 
@@ -21,7 +23,13 @@ public class ItemPanelSmokeTest
 	System.setProperty("java.awt.headless", "true");
     }
 
-    private static final Color HIGHLIGHT = new Color(255, 255, 153);
+    private static final Color HIGHLIGHT = selectionHighlight();
+
+    private static Color selectionHighlight()
+    {
+	Color color = UIManager.getColor("List.selectionBackground");
+	return (color != null) ? color : new Color(75, 110, 175);
+    }
 
     private ItemView findView(ItemPanel panel, int which)
     {
@@ -130,5 +138,53 @@ public class ItemPanelSmokeTest
 	// Right hand slot (view 5 -> Mercenary.RIGHT_HAND_INDEX): unfiltered
 	panel.doItemSelected(findView(panel, 5));
 	assertTrue("unfiltered slots keep the full list", hasChoice(idChoice, "Glock 17"));
+    }
+
+    /** The detail number fields must shrink gradually when the panel is
+     * narrower than preferred, not snap to their tiny minimum (the
+     * regression that made them look empty). */
+    @Test
+    public void detailNumberFieldsStayUsableWhenPanelNarrows() throws Exception
+    {
+	SaveGame sg = new SaveGame();
+	File sample = new File(ItemPanelSmokeTest.class.getResource(
+	    "/savegames/straciatella_4squad.sav").toURI());
+	sg.load(sample.getPath());
+	Mercenary merc = sg.getMerc(0);
+	Actor actor = sg.getActorByNick(merc.get("Nickname"));
+
+	ItemPanel panel = new ItemPanel(null);
+	panel.setActor(actor, merc);
+
+	// Select a slot that holds a real item
+	ItemView target = null;
+	for( java.awt.Component c : panel.getComponents() ) {
+	    if( c instanceof ItemView ) {
+		ItemView v = (ItemView) c;
+		Item it = merc.items[v.getIndex()];
+		if( it != null && it.getInt("Item ID") != 0 ) {
+		    target = v;
+		    break;
+		}
+	    }
+	}
+	assertNotNull("sample save should contain a real item", target);
+	panel.doItemSelected(target);
+
+	ItemDetailPanel detail = findDetailPanel(panel);
+	panel.setSize(panel.getPreferredSize());
+	panel.doLayout();
+	detail.doLayout();
+
+	// Narrow the panel moderately; every number field must stay usable
+	panel.setSize(panel.getWidth() - 50, panel.getHeight());
+	panel.doLayout();
+	detail.doLayout();
+	for( java.awt.Component c : detail.getComponents() ) {
+	    if( c instanceof JNumberView ) {
+		assertTrue("number field '" + ((JNumberView) c).getFieldName()
+			+ "' must not snap to minimum", c.getWidth() >= 20);
+	    }
+	}
     }
 }
