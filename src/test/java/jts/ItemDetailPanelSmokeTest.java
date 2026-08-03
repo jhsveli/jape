@@ -211,4 +211,70 @@ public class ItemDetailPanelSmokeTest
 	JChoiceView idView = findChoice(panel, 0);
 	assertEquals("None", idView.getSelectedItem());
     }
+
+    @Test
+    public void ammoDropdownIsRestrictedToAmmo()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	panel.setItem(makeItem(1, 2)); // Glock 17
+
+	JChoiceView ammoView = findChoice(panel, 1);
+	assertTrue("ammo items must be offered", hasChoice(ammoView, "9mm Pistol Magazine"));
+	assertFalse("weapons must be filtered out", hasChoice(ammoView, "Glock 17"));
+	assertFalse("weapon attachments must be filtered out", hasChoice(ammoView, "Silencer"));
+	assertFalse("armor attachments must be filtered out", hasChoice(ammoView, "Ceramic Plates"));
+    }
+
+    @Test
+    public void outOfCategoryAmmoStaysVisible()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	Item item = makeItem(1, 2); // Glock 17
+	item.setInt("Ammo ID", 0x0083); // Stun Grenade stuffed in the ammo slot
+	panel.setItem(item);
+
+	JChoiceView ammoView = findChoice(panel, 1);
+	assertEquals("Stun Grenade", ammoView.getSelectedItem());
+	assertTrue("out-of-category ammo must stay visible", hasChoice(ammoView, "Stun Grenade"));
+	assertTrue("ammo items must still be offered", hasChoice(ammoView, "9mm Pistol Magazine"));
+    }
+
+    @Test
+    public void weaponAttachmentDropdownIsRestrictedToWeaponAttachments()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	panel.setItem(makeItem(1, 2)); // Glock 17
+
+	JChoiceView attachmentView = findChoice(panel, 2);
+	assertTrue("weapon attachments must be offered", hasChoice(attachmentView, "Silencer"));
+	assertTrue("weapon attachments must be offered", hasChoice(attachmentView, "Sniper Scope"));
+	assertFalse("armor attachments must be filtered out", hasChoice(attachmentView, "Ceramic Plates"));
+	assertFalse("ammo must be filtered out", hasChoice(attachmentView, "9mm Pistol Magazine"));
+    }
+
+    @Test
+    public void armorAttachmentDropdownOffersCeramicPlates()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	panel.setItem(makeItem(0x00A1, 1)); // Flak Jacket (body armor)
+
+	JChoiceView attachmentView = findChoice(panel, 2);
+	assertTrue("armor attachments must be offered", hasChoice(attachmentView, "Ceramic Plates"));
+	assertFalse("weapon attachments must be filtered out", hasChoice(attachmentView, "Silencer"));
+    }
+
+    @Test
+    public void itemSwitchRebuildsAttachmentDropdown()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	panel.setItem(makeItem(1, 2)); // Glock 17 first
+
+	JChoiceView attachmentView = findChoice(panel, 2);
+	assertTrue("weapon attachments must be offered", hasChoice(attachmentView, "Silencer"));
+
+	// Switch the item to body armor; the attachment dropdown must follow
+	findChoice(panel, 0).setSelectedItem("Flak Jacket");
+	assertTrue("armor attachments must be offered", hasChoice(attachmentView, "Ceramic Plates"));
+	assertFalse("weapon attachments must be filtered out", hasChoice(attachmentView, "Silencer"));
+    }
 }

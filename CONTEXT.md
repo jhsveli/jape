@@ -15,3 +15,12 @@ An item is equippable to a slot when its item category matches the
 slot's category (e.g. a HELMET_CATEGORY item fits the Helmet slot).
 This is Jape's proxy for the game's real equip rules, which Jape does
 not model.
+
+**Ammo**:
+The item loaded into a weapon's ammo slot. Only AMMO_CATEGORY items
+can be loaded.
+
+**Attachment**:
+An item fitted to a weapon or armor. Weapons take weapon attachments
+(WEAPON_ATTACHMENT_CATEGORY); body armor takes armor attachments
+(ARMOR_ATTACHMENT_CATEGORY, i.e. ceramic plates).

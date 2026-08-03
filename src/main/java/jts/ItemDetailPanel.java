@@ -229,8 +229,14 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 //  	    }
 //  	}
 
-	// Rebuild the Item ID dropdown for the selected slot
+	// Rebuild the dropdowns for the selected slot: the Item ID dropdown
+	// is restricted by the slot's category (armor slots), while the ammo
+	// and attachment dropdowns are restricted by the item's category
 	this.idView.setChoices(this.buildItemChoices(allowedCategory));
+	this.ammoIdView.setChoices(this.buildAmmoChoices());
+	for( int idx = 0; idx < this.attachmentIdViews.length; ++idx ) {
+	    this.attachmentIdViews[idx].setChoices(this.buildAttachmentChoices(idx));
+	}
 
 	// Update views from data sources
 	for( Enumeration e = this.views.elements(); e.hasMoreElements(); ) {
@@ -254,9 +260,48 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	    return ItemExemplar.nameList;
 	}
 
+	Vector choices = buildChoices(allowedCategory.intValue());
+	this.keepCurrentVisible(choices, "Item ID");
+	return choices;
+    }
+
+    /** Build the Ammo ID dropdown entries: ammo items only. */
+    private Vector buildAmmoChoices() 
+    {
+	Vector choices = buildChoices(ItemExemplar.AMMO_CATEGORY);
+	this.keepCurrentVisible(choices, "Ammo ID");
+	return choices;
+    }
+
+    /** Build an Attachment ID dropdown for the given attachment slot.
+     * Weapons take weapon attachments; body armor takes armor attachments
+     * (ceramic plates); other item types keep the original mixed list
+     * (their attachment fields are disabled anyway). */
+    private Vector buildAttachmentChoices(int attachmentIndex) 
+    {
+	ItemExemplar exemplar = (this.item == null) ? null : this.item.getExemplar();
+	int category;
+	if( exemplar != null && exemplar.category == ItemExemplar.WEAPON_CATEGORY ) {
+	    category = ItemExemplar.WEAPON_ATTACHMENT_CATEGORY;
+	} else if( exemplar != null && exemplar.category == ItemExemplar.BODY_ARMOR_CATEGORY ) {
+	    category = ItemExemplar.ARMOR_ATTACHMENT_CATEGORY;
+	} else {
+	    Vector choices = copyList(ItemExemplar.attachmentNameList);
+	    this.keepCurrentVisible(choices, "Attachment " + (attachmentIndex+1) + " ID");
+	    return choices;
+	}
+
+	Vector choices = buildChoices(category);
+	this.keepCurrentVisible(choices, "Attachment " + (attachmentIndex+1) + " ID");
+	return choices;
+    }
+
+    /** Build a dropdown list containing "None" and every item of the given
+     * category, in the original item order. */
+    private Vector buildChoices(int category) 
+    {
 	Vector choices = new Vector();
 	choices.addElement("None");
-	int category = allowedCategory;
 	for( int idx = 0; idx < ItemExemplar.nameList.size(); ++idx ) {
 	    String name = (String) ItemExemplar.nameList.elementAt(idx);
 	    ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(name);
@@ -264,16 +309,29 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 		choices.addElement(name);
 	    }
 	}
+	return choices;
+    }
 
-	// If the slot already holds a known item that isn't in the filtered
-	// list, keep it visible so the UI doesn't lie about what's equipped.
+    /** Copy a shared list so it can be modified (e.g. by keepCurrentVisible). */
+    private Vector copyList(Vector source) 
+    {
+	Vector copy = new Vector();
+	for( int idx = 0; idx < source.size(); ++idx ) {
+	    copy.addElement(source.elementAt(idx));
+	}
+	return copy;
+    }
+
+    /** If the slot already holds a known item that isn't in the filtered
+     * list, keep it visible so the UI doesn't lie about what's equipped. */
+    private void keepCurrentVisible(Vector choices, String fieldName) 
+    {
 	if( this.item != null ) {
-	    ItemExemplar exemplar = this.item.getExemplar();
-	    if( exemplar != null && !choices.contains(exemplar.name) ) {
-		choices.addElement(exemplar.name);
+	    String current = this.item.get(fieldName);
+	    if( current != null && !current.equals("None") && !choices.contains(current) ) {
+		choices.addElement(current);
 	    }
 	}
-	return choices;
     }
 
     public void setEnabled(Vector views, boolean enabled)
@@ -384,11 +442,11 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 
 	    // If switching to weapon, change count to 1
 	    ItemExemplar exemplar = this.item.getExemplar();
-	    if( exemplar.category == ItemExemplar.WEAPON_CATEGORY ) {
+	    if( exemplar != null && exemplar.category == ItemExemplar.WEAPON_CATEGORY ) {
 		this.quantityView.setText("1");
 	    }
 	    // If switching to new ammo, set variety
-  	    else if ( exemplar.category == ItemExemplar.AMMO_CATEGORY ) 
+  	    else if ( exemplar != null && exemplar.category == ItemExemplar.AMMO_CATEGORY ) 
   	    {
   		int quantity = this.item.getInt("Quantity");
   		for( int idx = 0; idx < quantity; ++idx ) {
@@ -396,6 +454,12 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
   		    this.itemPctViews[idx].setText("" + exemplar.ammoCapacity);
   		}
   	    }
+
+	    // Rebuild the ammo and attachment dropdowns for the new item
+	    this.ammoIdView.setChoices(this.buildAmmoChoices());
+	    for( int idx = 0; idx < this.attachmentIdViews.length; ++idx ) {
+		this.attachmentIdViews[idx].setChoices(this.buildAttachmentChoices(idx));
+	    }
 
 	    // Decide which fields to show
 	    this.setEnabledAll();

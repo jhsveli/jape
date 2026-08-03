@@ -37,7 +37,8 @@ public class JChoiceView extends JComboBox implements FieldView, ItemListener
     public String getValue() { return (String) this.getSelectedItem(); }
     public void setStruct(Structure struct) { this.struct = struct; }
 
-    /** Replace the dropdown contents without firing change events. */
+    /** Replace the dropdown contents without firing change events, keeping
+     * the current value selected when it is still offered. */
     public void setChoices(Vector choices) 
     {
 	try {
@@ -46,7 +47,12 @@ public class JChoiceView extends JComboBox implements FieldView, ItemListener
 	    for( int idx = 0; idx < choices.size(); ++idx ) {
 		this.addItem((String) choices.elementAt(idx));
 	    }
-	    this.setSelectedIndex(0);
+	    String value = (this.struct == null) ? null : this.struct.get(this.fieldName);
+	    if( value != null ) {
+		this.selectValue(value);
+	    } else {
+		this.setSelectedIndex(0);
+	    }
 	} finally {
 	    this.suppressEvents = false;
 	}
