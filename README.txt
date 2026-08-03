@@ -55,7 +55,7 @@ installed Jagged Alliance 2. Sorry, no InstallShield setup program.
  4. Running JAPE
 --------------------------
 
-4.1 Starting Jape
+4.1 Starting no.jts.Jape
 
 From the desktop, create a shortcut to the file JAPE.JAR, and
 double-click on the shortcut. The JAPE main window should appear. Or
@@ -129,7 +129,7 @@ Changes in 0.31
 
 Changes in 0.30
 * Input boxes silently and automatically ignore bad input
-* Item editor disables irrelevant fields
-* Item editor fills in many fields automatically
+* no.jts.Item editor disables irrelevant fields
+* no.jts.Item editor fills in many fields automatically
 * Editor is smarter about when save is not needed
 * Added ability to edit money amount
