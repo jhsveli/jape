@@ -9,6 +9,7 @@ package jts;/*
 
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 //import java.io.File;
 //import java.io.IOException;
 
@@ -25,7 +26,7 @@ public class JapeAbout extends Dialog {
 	// Add icon
 
 	// Text Panel
-	Panel textPanel = new InsetPanel(5, 5, 5, 5);
+	JPanel textPanel = new InsetPanel(5, 5, 5, 5);
 	textPanel.setLayout(new GridLayout(4,1));
 	textPanel.setBackground(SystemColor.text);
 
@@ -39,7 +40,7 @@ public class JapeAbout extends Dialog {
 	textPanel.add(line4);
 
 	// Button bar
-	Panel buttonPanel = new InsetPanel(0, 5, 0, 5);
+	JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
 	buttonPanel.setLayout(new FlowLayout());
 	Button okButton = new Button("OK");
 	okButton.addActionListener( new ActionListener() {

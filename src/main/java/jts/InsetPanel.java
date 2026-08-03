@@ -8,25 +8,19 @@ package jts;/*
  
 
 import java.awt.*;
+import javax.swing.*;
 
 /** A panel with specified insets on all four sides. */
-public class InsetPanel extends Panel
+public class InsetPanel extends JPanel
 {
-  private Insets _insets;
-
   public InsetPanel( Insets insets ) {
     super();
-    this._insets = insets;
-    //setLayout(new BorderLayout());
+    setBorder(BorderFactory.createEmptyBorder(
+        insets.top, insets.left, insets.bottom, insets.right));
   }
 
   public InsetPanel( int top, int left, int bottom, int right ) {
     super();
-    this._insets = new Insets(top, left, bottom, right);
-    //setLayout(new BorderLayout());
-  }
-
-  public Insets getInsets() {
-    return this._insets;
+    setBorder(BorderFactory.createEmptyBorder(top, left, bottom, right));
   }
 }

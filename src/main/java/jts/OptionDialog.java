@@ -9,6 +9,7 @@ package jts;/*
 
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 import java.util.StringTokenizer;
 
 public class OptionDialog extends Dialog 
@@ -73,7 +74,7 @@ public class OptionDialog extends Dialog
 	// Add icon
 
 	// Text Panel
-	Panel textPanel = new InsetPanel(5, 5, 5, 5);
+	JPanel textPanel = new InsetPanel(5, 5, 5, 5);
 	textPanel.setLayout(new GridLayout(0,1));
 	textPanel.setBackground(SystemColor.text);
 
@@ -89,7 +90,7 @@ public class OptionDialog extends Dialog
 	}
 
 	// Button bar
-	Panel buttonPanel = new InsetPanel(0, 5, 0, 5);
+	JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
 	buttonPanel.setLayout(new FlowLayout());
 
 	// Various buttons

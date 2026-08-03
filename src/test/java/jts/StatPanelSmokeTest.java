@@ -60,6 +60,7 @@ public class StatPanelSmokeTest
     public void constructsWithSwingComponents()
     {
 	StatPanel panel = new StatPanel(null);
+	assertTrue("panel should be a Swing container", panel instanceof javax.swing.JPanel);
 
 	int labels = 0, numbers = 0, choices = 0;
 	for( java.awt.Component c : panel.getComponents() ) {

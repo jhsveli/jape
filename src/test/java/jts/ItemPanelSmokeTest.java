@@ -11,6 +11,7 @@ import static org.junit.Assert.*;
 import java.awt.Color;
 
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.junit.Test;
 
@@ -40,6 +41,7 @@ public class ItemPanelSmokeTest
     public void constructsWithExpectedStructure()
     {
 	ItemPanel panel = new ItemPanel(null);
+	assertTrue("panel should be a Swing container", panel instanceof JPanel);
 
 	int views = 0, headings = 0, details = 0;
 	for( java.awt.Component c : panel.getComponents() ) {

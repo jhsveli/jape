@@ -64,6 +64,7 @@ public class ItemDetailPanelSmokeTest
     public void constructsWithSwingComponents()
     {
 	ItemDetailPanel panel = new ItemDetailPanel(null);
+	assertTrue("panel should be a Swing container", panel instanceof JPanel);
 	assertTrue("panel should have children", panel.getComponentCount() > 0);
 
 	int labels = 0, numbers = 0, choices = 0;
