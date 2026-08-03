@@ -9,6 +9,7 @@ package jts;
 
 import static org.junit.Assert.*;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
@@ -176,6 +177,9 @@ public class JapeFrameTest
 	tree.setRootVisible(false);
 	tree.setShowsRootHandles(true);
 	JScrollPane actorScroll = new JScrollPane(tree);
+	// Mirrors JapeFrame: floor the tree column width so it cannot
+	// collapse to its tiny default minimum when space is tight.
+	actorScroll.setMinimumSize(new Dimension(135, 0));
 	StatPanel statPanel = new StatPanel(null);
 	ItemPanel itemPanel = new ItemPanel(null);
 
@@ -212,5 +216,33 @@ public class JapeFrameTest
 		     treeWidth, actorScroll.getWidth());
 	assertEquals("stat column must not collapse after load",
 		     statWidth, statPanel.getWidth());
+
+	// Window narrower than preferred: the tree column floors at its
+	// minimum instead of collapsing to ~0, and the stat input fields
+	// shrink gradually instead of snapping to their 5px minimum.
+	body.setSize(body.getPreferredSize().width - 200, body.getHeight());
+	body.doLayout();
+	statPanel.doLayout(); // body layout only sizes the panel, not its fields
+	assertTrue("tree column must stay usable when window shrinks",
+		     actorScroll.getWidth() >= 120);
+	assertTrue("stat column must stay usable when window shrinks",
+		     statPanel.getWidth() > 100);
+	assertTrue("stat input fields must stay usable when window shrinks",
+		     statFieldWidth(statPanel, 2) > 8); // Health
+    }
+
+    /** Width of the nth JNumberView child of the panel (0-based). */
+    private static int statFieldWidth(StatPanel panel, int which)
+    {
+	int seen = 0;
+	for( java.awt.Component c : panel.getComponents() ) {
+	    if( c instanceof JNumberView ) {
+		if( seen == which ) {
+		    return c.getWidth();
+		}
+		++seen;
+	    }
+	}
+	return -1;
     }
 }

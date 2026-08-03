@@ -68,6 +68,10 @@ public class JapeFrame extends JFrame implements DataChangeListener
 		    doSelectActor();
 		}});
 	JScrollPane actorScroll = new JScrollPane(this.actorTree);
+	// Floor the tree column width so it never collapses to its tiny
+	// default minimum (~22px) when the window is narrower than the
+	// preferred width; nicknames stay readable even at small sizes.
+	actorScroll.setMinimumSize(new Dimension(135, 0));
 	GridBagConstraints c1 = new GridBagConstraints();
 	c1.fill = c1.BOTH;
 	c1.gridx = 0;

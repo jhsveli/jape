@@ -44,9 +44,10 @@ public class StatPanel extends InsetPanel implements DataChangeListener
 	this.constraint.gridwidth = 1;
 	this.constraint.insets = new Insets(0,0,0,0);
 
-	// Name and nickname
-	this.addStringStat("Name", "Name", 30);
-	this.addStringStat("Nickname", "Nickname", 30);
+	// Name and nickname (18 chars instead of 30 so the panel's
+	// preferred width stays modest and the window packs narrower)
+	this.addStringStat("Name", "Name", 18);
+	this.addStringStat("Nickname", "Nickname", 18);
 
 	// Health, current max and inc
 	this.newRow();
@@ -111,7 +112,15 @@ public class StatPanel extends InsetPanel implements DataChangeListener
     private void addNumberView(int colwidth, String statField, int charWidth)
     {
 	JNumberView view = new JNumberView(statField, charWidth);
+	// Input cells take weight and horizontal fill so they shrink
+	// gradually when the panel is narrower than preferred, instead of
+	// snapping to the 5px JTextField minimum the moment any deficit
+	// appears (GridBagLayout crushes non-filling weight-0 cells).
+	this.constraint.fill = this.constraint.HORIZONTAL;
+	this.constraint.weightx = 1;
 	this.addComponent(colwidth, view);
+	this.constraint.fill = this.constraint.NONE;
+	this.constraint.weightx = 0;
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
     }
@@ -163,7 +172,12 @@ public class StatPanel extends InsetPanel implements DataChangeListener
 	this.newRow();
 	this.addText(1, statTitle, Label.LEFT);
 	JChoiceView view = new JChoiceView(statField, statChoices);
+	// Input cells take weight and horizontal fill (see addNumberView).
+	this.constraint.fill = this.constraint.HORIZONTAL;
+	this.constraint.weightx = 1;
 	this.addComponent(this.constraint.REMAINDER, view);
+	this.constraint.fill = this.constraint.NONE;
+	this.constraint.weightx = 0;
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
     }
