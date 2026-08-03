@@ -31,6 +31,7 @@ JAPE works with the following versions of Jagged Alliance 2:
  * US version 1.07      (Build 00.05.29)
  * US version 1.12      (Build 04.12.-2)
  * US version 1.13-2085 (Build 08.04.27)
+ * JA2 Stracciatella     (version 102, Build 04.12.02)
 Other versions may work, but are untested.
 
 Only stats editing is possible for version 1.13 save games, not item
