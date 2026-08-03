@@ -7,9 +7,9 @@ package jts;/*
 
  
 
-import java.awt.*;
+import javax.swing.*;
 
-public class ItemView extends Button
+public class ItemView extends JButton
 {
     // Static data
     public static final int MAX_LENGTH = 16;
@@ -64,6 +64,6 @@ public class ItemView extends Button
 	}
 
 	// Set button label
-	this.setLabel(name);
+	this.setText(name);
     }
 }

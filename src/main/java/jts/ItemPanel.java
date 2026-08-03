@@ -9,6 +9,7 @@ package jts;/*
 
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.*;
 import java.util.Vector;
 
 public class ItemPanel extends InsetPanel implements DataChangeListener
@@ -134,7 +135,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private void addHeading(int colwidth, String text)
     {
 	// Add group heading label
-	Label label = new Label(text, Label.LEFT);
+	JLabel label = new JLabel(text, SwingConstants.LEFT);
 	this.addComponent(colwidth, label);
     }
 

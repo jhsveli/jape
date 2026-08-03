@@ -9,6 +9,7 @@ package jts;
  
 
 import java.awt.*;
+import javax.swing.*;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -31,23 +32,23 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
     private Vector attachmentComponents = new Vector();
     private Vector moneyComponents = new Vector();
 
-    private ChoiceView idView;
-    private NumberView quantityView;
-    private Label itemPctLabel;
-    private NumberView[] itemPctViews = new NumberView[6];
-    private Label ammoIdLabel;
-    private ChoiceView ammoIdView;
-    private Label ammoQuantityLabel;
-    private NumberView ammoQuantityView;
-    private Label ammoVarietyLabel;
-    private NumberView ammoVarietyView;
-    private Label ammoPctLabel;
-    private NumberView ammoPctView;
-    private ChoiceView[] attachmentIdViews = new ChoiceView[4];
-    private NumberView[] attachmentPctViews = new NumberView[4];
-    private NumberView weightView;
-    private Label moneyValueLabel;
-    private NumberView moneyValueView;
+    private JChoiceView idView;
+    private JNumberView quantityView;
+    private JLabel itemPctLabel;
+    private JNumberView[] itemPctViews = new JNumberView[6];
+    private JLabel ammoIdLabel;
+    private JChoiceView ammoIdView;
+    private JLabel ammoQuantityLabel;
+    private JNumberView ammoQuantityView;
+    private JLabel ammoVarietyLabel;
+    private JNumberView ammoVarietyView;
+    private JLabel ammoPctLabel;
+    private JNumberView ammoPctView;
+    private JChoiceView[] attachmentIdViews = new JChoiceView[4];
+    private JNumberView[] attachmentPctViews = new JNumberView[4];
+    private JNumberView weightView;
+    private JLabel moneyValueLabel;
+    private JNumberView moneyValueView;
 
     // Instance methods
     public ItemDetailPanel(Frame parent)
@@ -107,18 +108,18 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	    String str = "Attachment " + (idx+1);
 
 	    this.newRow();
-	    Label label = this.addText(1, str);
+	    JLabel label = this.addText(1, str);
 	    this.attachmentComponents.addElement(label);
 
-	    ChoiceView view = addItemView(6, str + " ID", ItemExemplar.attachmentNameList);
+	    JChoiceView view = addItemView(6, str + " ID", ItemExemplar.attachmentNameList);
 	    this.attachmentIdViews[idx] = view;
 	    this.attachmentComponents.addElement(view);
 
-	    NumberView pctView = this.addByteView(1, str + " %");
+	    JNumberView pctView = this.addByteView(1, str + " %");
 	    this.attachmentPctViews[idx] = pctView;
 	    this.attachmentComponents.addElement(pctView);
 
-	    Label pctLabel = this.addText(1, "%");
+	    JLabel pctLabel = this.addText(1, "%");
 	    this.attachmentComponents.addElement(pctLabel);
 	}
 
@@ -141,7 +142,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	this.constraint.fill = this.constraint.BOTH;
 	this.constraint.weightx = 1;
 	this.constraint.weighty = 1;
-	this.addComponent(this.constraint.REMAINDER, new Label());
+	this.addComponent(this.constraint.REMAINDER, new JLabel());
     }
 
     private void newRow() 
@@ -159,9 +160,9 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	this.constraint.gridx += colwidth;
     }
 
-    private NumberView addNumberView(int colwidth, String statField, int charWidth)
+    private JNumberView addNumberView(int colwidth, String statField, int charWidth)
     {
-	NumberView view = new NumberView(statField, charWidth);
+	JNumberView view = new JNumberView(statField, charWidth);
 	this.constraint.fill = this.constraint.NONE;
 	this.addComponent(colwidth, view);
 	this.views.addElement(view);
@@ -169,34 +170,40 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	return view;
     }
 
-    private Label addText(int colwidth, String text) 
+    private JLabel addText(int colwidth, String text) 
     {
 	return this.addText(colwidth, text, Label.LEFT);
     }
 
-    private Label addText(int colwidth, String text, int align) 
+    private JLabel addText(int colwidth, String text, int align) 
     {
-	// Create new label
-	Label label = new Label(text, align);
+	// Create new label (map the AWT alignment constant to Swing)
+	int swingAlign = SwingConstants.LEFT;
+	if( align == Label.CENTER ) {
+	    swingAlign = SwingConstants.CENTER;
+	} else if( align == Label.RIGHT ) {
+	    swingAlign = SwingConstants.RIGHT;
+	}
+	JLabel label = new JLabel(text, swingAlign);
 	this.constraint.fill = this.constraint.HORIZONTAL;
 	this.addComponent(colwidth, label);
 	return label;
     }
 
-    public NumberView addByteView(int colwidth, String statField)
+    public JNumberView addByteView(int colwidth, String statField)
     {
 	return this.addNumberView(1, statField, 3);
     }
 
-    public NumberView addShortView(int colwidth, String statField)
+    public JNumberView addShortView(int colwidth, String statField)
     {
 	return this.addNumberView(1, statField, 3);
     }
 
-    public ChoiceView addItemView(int colwidth, String statField, Vector statChoices)
+    public JChoiceView addItemView(int colwidth, String statField, Vector statChoices)
     {
 	// Create new view
-	ChoiceView view = new ChoiceView(statField, statChoices);
+	JChoiceView view = new JChoiceView(statField, statChoices);
 	this.constraint.fill = this.constraint.HORIZONTAL;
 	this.addComponent(colwidth, view);
 	this.views.addElement(view);
