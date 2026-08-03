@@ -18,6 +18,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private GridBagLayout layout = new GridBagLayout();
     private GridBagConstraints constraint = new GridBagConstraints();
     private ItemDetailPanel itemDetailPanel;
+    private static final Color SELECTED_BACKGROUND = new Color(255, 255, 153);
 
     // State machine
     private boolean modified = false;
@@ -29,6 +30,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     // Data Views
     private Vector views = new Vector();
     private ItemView currentView;
+    private Color defaultBackground;
 
     // Instance methods
     public ItemPanel(Frame parent)
@@ -177,7 +179,20 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     {
 	// Get item index
 	int index = view.getIndex();
+	// Reset the highlight on the previously selected button
+	if( this.currentView != null && this.currentView != view ) {
+	    this.currentView.setBackground(this.defaultBackground);
+	}
+
+	// Save the default button background the first time it is needed,
+	// so the highlight can be removed again later
+	if( this.defaultBackground == null && this.currentView != view ) {
+	    this.defaultBackground = view.getBackground();
+	}
+
+	// Highlight the newly selected button
 	this.currentView = view;
+	view.setBackground(SELECTED_BACKGROUND);
 
 	// Get new item
 	Item item = null;
