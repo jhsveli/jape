@@ -25,7 +25,7 @@ public class ChoiceField implements Field
     public String get(byte[] data)
     {
 	int value = this.baseField.getInt(data);
-	String str = (String) this.table.get(new Integer(value));
+	String str = (String) this.table.get(Integer.valueOf(value));
 	return str;
     }
 

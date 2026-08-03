@@ -92,7 +92,7 @@ public class Item extends BasicStructure
 
     public ItemExemplar getExemplar() {
 	int fieldValue = this.getInt("Item ID");
-	ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(new Integer(fieldValue));
+	ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(Integer.valueOf(fieldValue));
 	return exemplar;
     }
 

@@ -56,8 +56,8 @@ public class Skill {
     static {
 	for( int idx = 0; idx < list.size(); ++idx )
 	{
-	    table.put(list.elementAt(idx), new Integer(idx));
-	    table.put(new Integer(idx), list.elementAt(idx));
+	    table.put(list.elementAt(idx), Integer.valueOf(idx));
+	    table.put(Integer.valueOf(idx), list.elementAt(idx));
 	}
     }
 }

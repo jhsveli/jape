@@ -366,7 +366,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	    if( (! newValue.equals("None")) && (! newValue.equals(oldValue)) )
 	    {
 		int ammoId = this.item.getInt("Ammo ID");
-		ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(new Integer(ammoId));
+		ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(Integer.valueOf(ammoId));
 		System.err.println("" + exemplar.ammoVariety);
 		this.ammoVarietyView.setText("" + exemplar.ammoVariety);
 		this.ammoQuantityView.setText("" + exemplar.ammoCapacity);

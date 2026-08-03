@@ -407,11 +407,11 @@ class ItemExemplar {
 	}
 
 	// Register item type
-	this.nameTable.put(name, new Integer(id));
-	this.nameTable.put(new Integer(id), name);
+	this.nameTable.put(name, Integer.valueOf(id));
+	this.nameTable.put(Integer.valueOf(id), name);
 
 	this.exemplarTable.put(name, this);
-	this.exemplarTable.put(new Integer(id), this);
+	this.exemplarTable.put(Integer.valueOf(id), this);
 
 	this.nameList.addElement(this.name);
     }
