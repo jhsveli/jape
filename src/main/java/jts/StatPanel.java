@@ -8,6 +8,7 @@ package jts;/*
  
 
 import java.awt.*;
+import javax.swing.*;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -89,7 +90,7 @@ public class StatPanel extends InsetPanel implements DataChangeListener
 	this.constraint.fill = this.constraint.BOTH;
 	this.constraint.weightx = 1;
 	this.constraint.weighty = 1;
-	this.addComponent(this.constraint.REMAINDER, new Label());
+	this.addComponent(this.constraint.REMAINDER, new JLabel());
     }
 
     private void newRow() 
@@ -107,17 +108,9 @@ public class StatPanel extends InsetPanel implements DataChangeListener
 	this.constraint.gridx += colwidth;
     }
 
-    private void addTextView(int colwidth, String statField, int charWidth)
-    {
-	TextView view = new TextView(statField, charWidth);
-	this.addComponent(colwidth, view);
-	this.views.addElement(view);
-	view.addDataChangeListener(this);
-    }
-
     private void addNumberView(int colwidth, String statField, int charWidth)
     {
-	NumberView view = new NumberView(statField, charWidth);
+	JNumberView view = new JNumberView(statField, charWidth);
 	this.addComponent(colwidth, view);
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
@@ -125,8 +118,14 @@ public class StatPanel extends InsetPanel implements DataChangeListener
 
     private void addText(int colwidth, String text, int align) 
     {
-	// Create new label
-	Label label = new Label(text, align);
+	// Create new label (map the AWT alignment constant to Swing)
+	int swingAlign = SwingConstants.LEFT;
+	if( align == Label.CENTER ) {
+	    swingAlign = SwingConstants.CENTER;
+	} else if( align == Label.RIGHT ) {
+	    swingAlign = SwingConstants.RIGHT;
+	}
+	JLabel label = new JLabel(text, swingAlign);
 	this.addComponent(colwidth, label);
     }
 
@@ -163,7 +162,7 @@ public class StatPanel extends InsetPanel implements DataChangeListener
     {
 	this.newRow();
 	this.addText(1, statTitle, Label.LEFT);
-	ChoiceView view = new ChoiceView(statField, statChoices);
+	JChoiceView view = new JChoiceView(statField, statChoices);
 	this.addComponent(this.constraint.REMAINDER, view);
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
