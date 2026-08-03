@@ -28,6 +28,24 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private Actor actor;
     private Mercenary merc;
 
+    // Slot index -> item category the slot accepts; null means any item.
+    // First iteration: armor slots only. Headgear/hands/ammo filters will
+    // be added to this table in later iterations.
+    private static final Integer[] SLOT_CATEGORY = new Integer[Mercenary.ITEM_COUNT];
+    static {
+	SLOT_CATEGORY[Mercenary.HELMET_INDEX] = Integer.valueOf(ItemExemplar.HELMET_CATEGORY);
+	SLOT_CATEGORY[Mercenary.BODY_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.BODY_ARMOR_CATEGORY);
+	SLOT_CATEGORY[Mercenary.LEG_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.LEG_ARMOR_CATEGORY);
+    }
+
+    private static Integer categoryForSlot(int slotIndex)
+    {
+	if( slotIndex < 0 || slotIndex >= SLOT_CATEGORY.length ) {
+	    return null;
+	}
+	return SLOT_CATEGORY[slotIndex];
+    }
+
     // Data Views
     private Vector views = new Vector();
     private ItemView currentView;
@@ -202,7 +220,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
 	}
 
 	// Change to new item
-	this.itemDetailPanel.setItem(item);
+	this.itemDetailPanel.setItem(item, categoryForSlot(index));
     }
 
     public void dataChanged(DataChangeEvent event) 

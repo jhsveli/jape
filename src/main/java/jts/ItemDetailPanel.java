@@ -213,6 +213,14 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 
     public void setItem(Item item) 
     {
+	this.setItem(item, null);
+    }
+
+    /** Show an item in the detail panel. When {@code allowedCategory} is
+     * non-null the Item ID dropdown is restricted to that category (plus
+     * "None"); when null every item is offered. */
+    public void setItem(Item item, Integer allowedCategory) 
+    {
 	// Update fields
 	this.item = item;
 //  	if( this.item != null ) {
@@ -220,6 +228,9 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 //  		System.err.println("" + foo + ":\t" + this.item.data[foo]);
 //  	    }
 //  	}
+
+	// Rebuild the Item ID dropdown for the selected slot
+	this.idView.setChoices(this.buildItemChoices(allowedCategory));
 
 	// Update views from data sources
 	for( Enumeration e = this.views.elements(); e.hasMoreElements(); ) {
@@ -233,6 +244,36 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 
 	// Actor now clean
 	this.modified = false;
+    }
+
+    /** Build the Item ID dropdown entries for the given allowed category
+     * (null = every item). "None" is always offered first. */
+    private Vector buildItemChoices(Integer allowedCategory) 
+    {
+	if( allowedCategory == null ) {
+	    return ItemExemplar.nameList;
+	}
+
+	Vector choices = new Vector();
+	choices.addElement("None");
+	int category = allowedCategory;
+	for( int idx = 0; idx < ItemExemplar.nameList.size(); ++idx ) {
+	    String name = (String) ItemExemplar.nameList.elementAt(idx);
+	    ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(name);
+	    if( exemplar != null && exemplar.category == category ) {
+		choices.addElement(name);
+	    }
+	}
+
+	// If the slot already holds a known item that isn't in the filtered
+	// list, keep it visible so the UI doesn't lie about what's equipped.
+	if( this.item != null ) {
+	    ItemExemplar exemplar = this.item.getExemplar();
+	    if( exemplar != null && !choices.contains(exemplar.name) ) {
+		choices.addElement(exemplar.name);
+	    }
+	}
+	return choices;
     }
 
     public void setEnabled(Vector views, boolean enabled)
@@ -251,8 +292,10 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	}
 
 	// Decide which fields to show based on item type
+	// Unknown item ids have no exemplar; treat them like the default case
 	ItemExemplar exemplar = this.item.getExemplar();
-	switch ( exemplar.category ) {
+	int category = (exemplar == null) ? -1 : exemplar.category;
+	switch ( category ) {
 	case ItemExemplar.WEAPON_CATEGORY:
 	    this.setEnabled(this.ammoComponents, true); 
 	    this.setEnabled(this.attachmentComponents, true);
@@ -290,7 +333,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	}
 
 	// Set label appropriately
-	if( exemplar.category == ItemExemplar.AMMO_CATEGORY ) {
+	if( category == ItemExemplar.AMMO_CATEGORY ) {
 	    this.itemPctLabel.setText("Number of Rounds");
 	} else {
 	    this.itemPctLabel.setText("Item %");

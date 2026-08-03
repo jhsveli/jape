@@ -37,6 +37,37 @@ public class ItemPanelSmokeTest
 	return null;
     }
 
+    private ItemDetailPanel findDetailPanel(ItemPanel panel)
+    {
+	for( java.awt.Component c : panel.getComponents() ) {
+	    if( c instanceof ItemDetailPanel ) {
+		return (ItemDetailPanel) c;
+	    }
+	}
+	return null;
+    }
+
+    private JChoiceView findItemChoice(ItemDetailPanel panel)
+    {
+	// The Item ID combobox is the first JChoiceView in the detail panel
+	for( java.awt.Component c : panel.getComponents() ) {
+	    if( c instanceof JChoiceView ) {
+		return (JChoiceView) c;
+	    }
+	}
+	return null;
+    }
+
+    private boolean hasChoice(JChoiceView view, String name)
+    {
+	for( int idx = 0; idx < view.getItemCount(); ++idx ) {
+	    if( name.equals(view.getItemAt(idx)) ) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
     @Test
     public void constructsWithExpectedStructure()
     {
@@ -77,5 +108,27 @@ public class ItemPanelSmokeTest
 
 	panel.setActor(null, null);
 	assertEquals("first slot should be highlighted after setActor", HIGHLIGHT, first.getBackground());
+    }
+
+    @Test
+    public void armorSlotClickFiltersDetailItemChoice()
+    {
+	ItemPanel panel = new ItemPanel(null);
+	ItemDetailPanel detail = findDetailPanel(panel);
+	JChoiceView idChoice = findItemChoice(detail);
+
+	// Helmet slot (view 1 -> Mercenary.HELMET_INDEX): only helmets offered
+	panel.doItemSelected(findView(panel, 1));
+	assertTrue("helmet items must be offered", hasChoice(idChoice, "Steel Helmet"));
+	assertFalse("weapons must be filtered out", hasChoice(idChoice, "Glock 17"));
+
+	// Leg armor slot (view 4 -> Mercenary.LEG_ARMOR_INDEX): only leggings offered
+	panel.doItemSelected(findView(panel, 4));
+	assertTrue("leg armor items must be offered", hasChoice(idChoice, "Kevlar Leggings"));
+	assertFalse("weapons must be filtered out", hasChoice(idChoice, "Glock 17"));
+
+	// Right hand slot (view 5 -> Mercenary.RIGHT_HAND_INDEX): unfiltered
+	panel.doItemSelected(findView(panel, 5));
+	assertTrue("unfiltered slots keep the full list", hasChoice(idChoice, "Glock 17"));
     }
 }

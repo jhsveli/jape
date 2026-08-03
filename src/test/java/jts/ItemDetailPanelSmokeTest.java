@@ -45,6 +45,17 @@ public class ItemDetailPanelSmokeTest
 	return null;
     }
 
+    /** True if the choice view offers the named entry. */
+    private boolean hasChoice(JChoiceView view, String name)
+    {
+	for( int idx = 0; idx < view.getItemCount(); ++idx ) {
+	    if( name.equals(view.getItemAt(idx)) ) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
     /** The nth JNumberView child (0-based), in construction order. */
     private JNumberView findNumber(ItemDetailPanel panel, int which)
     {
@@ -143,5 +154,61 @@ public class ItemDetailPanelSmokeTest
 	panel.setItem(makeItem(0x00DB, 1));
 	assertTrue(findNumber(panel, 15).isEnabled());
 	assertFalse(findNumber(panel, 7).isEnabled());
+    }
+
+    @Test
+    public void armorSlotFilterRestrictsItemChoices()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	// Steel Helmet (0x00B0) in the helmet slot
+	panel.setItem(makeItem(0x00B0, 1),
+		      Integer.valueOf(ItemExemplar.HELMET_CATEGORY));
+
+	JChoiceView idView = findChoice(panel, 0);
+	assertEquals("Steel Helmet", idView.getSelectedItem());
+	assertTrue("None must stay available", hasChoice(idView, "None"));
+	assertTrue("helmet items must be offered", hasChoice(idView, "Steel Helmet"));
+	assertTrue("helmet items must be offered", hasChoice(idView, "Kevlar Helmet"));
+	assertFalse("weapons must be filtered out", hasChoice(idView, "Glock 17"));
+	assertFalse("body armor must be filtered out", hasChoice(idView, "Kevlar Vest"));
+	assertFalse("leg armor must be filtered out", hasChoice(idView, "Kevlar Leggings"));
+    }
+
+    @Test
+    public void unfilteredSlotKeepsFullItemList()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	panel.setItem(makeItem(1, 2)); // Glock 17, no category restriction
+
+	JChoiceView idView = findChoice(panel, 0);
+	assertTrue("weapons must be offered", hasChoice(idView, "Glock 17"));
+	assertTrue("helmet items must be offered", hasChoice(idView, "Steel Helmet"));
+    }
+
+    @Test
+    public void outOfCategoryItemStaysVisible()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	// Combat Knife (0x0025) in the helmet slot: not a helmet, but must
+	// stay visible so the UI doesn't lie about what's equipped
+	panel.setItem(makeItem(0x0025, 1),
+		      Integer.valueOf(ItemExemplar.HELMET_CATEGORY));
+
+	JChoiceView idView = findChoice(panel, 0);
+	assertEquals("Combat Knife", idView.getSelectedItem());
+	assertTrue("out-of-category item must stay visible", hasChoice(idView, "Combat Knife"));
+	assertTrue("helmet items must still be offered", hasChoice(idView, "Steel Helmet"));
+    }
+
+    @Test
+    public void unknownItemFallsBackToNone()
+    {
+	ItemDetailPanel panel = new ItemDetailPanel(null);
+	// 0x0073 is not in the exemplar table (unknown item id)
+	panel.setItem(makeItem(0x0073, 1),
+		      Integer.valueOf(ItemExemplar.HELMET_CATEGORY));
+
+	JChoiceView idView = findChoice(panel, 0);
+	assertEquals("None", idView.getSelectedItem());
     }
 }
