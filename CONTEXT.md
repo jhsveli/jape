@@ -41,3 +41,12 @@ list survives across saves.
 **Other actors**:
 The actor-tree group for every remaining MERCPROFILE: NPCs, enemies,
 and unused profile slots.
+
+**Autosave**:
+The toolbar checkbox (on by default) that saves the open save game
+immediately after every change.
+
+**Equipped**:
+The mercenary's loadout slots — the two headgear slots, the three
+armor slots, and the two hand slots — as copied and pasted by the
+"Copy/Paste Equipped" toolbar buttons.
