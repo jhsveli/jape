@@ -5,9 +5,10 @@
   of the GNU Public License, incorporated herein by reference.
 */
 
-package jts.gui;
+package jts;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
+import jts.gui.JapeFrame;
 
 public class JapeGui {
     private static final int DEFAULT_WIDTH = 130;

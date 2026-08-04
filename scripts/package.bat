@@ -48,7 +48,7 @@ if exist target\package-input rmdir /s /q target\package-input
 mkdir target\package-input
 copy /y %JAR% target\package-input\ >nul
 "%JAVA_HOME%\bin\jpackage" ^
-    --type app-image ^
+    --type exe ^
     --name %APP_NAME% ^
     --app-version %APP_VERSION% ^
     --input target\package-input ^
