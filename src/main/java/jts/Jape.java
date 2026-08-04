@@ -5,25 +5,19 @@ package jts;/*
   of the GNU Public License, incorporated herein by reference.
 */
 
- 
 
-public class Jape 
-{
-    public static void main(String[] args)
-    {
-	try 
-	{
-	    int i = Long.decode(args[0]).intValue();
-	    float f = Float.intBitsToFloat(i);
-	    System.out.println("f is " + f);
-	}
-	catch( Exception e )
-	{
-	    System.err.println("Oops:");
-	    e.printStackTrace(System.err);
-	}
-	
-	System.out.println( "Done" );
+public class Jape {
+    public static void main(String[] args) {
+        try {
+            int i = Long.decode(args[0]).intValue();
+            float f = Float.intBitsToFloat(i);
+            System.out.println("f is " + f);
+        } catch (Exception e) {
+            System.err.println("Oops:");
+            e.printStackTrace(System.err);
+        }
+
+        System.out.println("Done");
     }
 }
 

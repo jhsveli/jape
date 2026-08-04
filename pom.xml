@@ -43,7 +43,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>jts.JapeGui</mainClass>
+                            <mainClass>jts.gui.JapeGui</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -61,7 +61,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>jts.JapeGui</mainClass>
+                                    <mainClass>jts.gui.JapeGui</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
