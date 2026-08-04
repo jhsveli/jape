@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write          # to attach assets to the release
+
+jobs:
+  package:
+    name: Package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Derive version from tag
+        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      # Reuses scripts/package.sh: mvn clean package (runs the 43 tests),
+      # jdeps module analysis, jlink trimmed runtime, jpackage app image
+      # -> target/dist/Jape/
+      - name: Build distributable
+        run: bash scripts/package.sh
+
+      - name: Compress app image
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            Windows) 7z a -tzip target/dist/jape-windows.zip target/dist/Jape ;;
+            macOS)   (cd target/dist && zip -r jape-macos.zip Jape) ;;
+            Linux)   tar -czf target/dist/jape-linux.tar.gz -C target/dist Jape ;;
+          esac
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/dist/jape-*.zip
+            target/dist/jape-*.tar.gz
