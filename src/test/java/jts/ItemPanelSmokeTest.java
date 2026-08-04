@@ -125,6 +125,16 @@ public class ItemPanelSmokeTest
 	ItemDetailPanel detail = findDetailPanel(panel);
 	JChoiceView idChoice = findItemChoice(detail);
 
+	// Headgear slot 1 (view 0 -> Mercenary.HEADGEAR_1_INDEX): only headgear
+	panel.doItemSelected(findView(panel, 0));
+	assertTrue("headgear items must be offered", hasChoice(idChoice, "Gas Mask"));
+	assertFalse("weapons must be filtered out", hasChoice(idChoice, "Glock 17"));
+
+	// Headgear slot 2 (view 2 -> Mercenary.HEADGEAR_2_INDEX): only headgear
+	panel.doItemSelected(findView(panel, 2));
+	assertTrue("headgear items must be offered", hasChoice(idChoice, "Gas Mask"));
+	assertFalse("weapons must be filtered out", hasChoice(idChoice, "Glock 17"));
+
 	// Helmet slot (view 1 -> Mercenary.HELMET_INDEX): only helmets offered
 	panel.doItemSelected(findView(panel, 1));
 	assertTrue("helmet items must be offered", hasChoice(idChoice, "Steel Helmet"));

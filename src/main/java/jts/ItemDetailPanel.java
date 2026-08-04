@@ -207,10 +207,14 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener
 	// Combos get weight and a smaller minimum so they share the shrink
 	// with the number cells when the panel is narrow; a combo that keeps
 	// its full width (JComboBox min == preferred) would force the rest
-	// of its row to snap to minimum.
+	// of its row to snap to minimum. The height is kept at the preferred
+	// height so the combo never collapses to invisible.
 	this.constraint.fill = this.constraint.HORIZONTAL;
 	this.constraint.weightx = 1;
 	this.addComponent(colwidth, view);
+	this.constraint.fill = this.constraint.NONE;
+	this.constraint.weightx = 0;
+	view.setMinimumSize(new Dimension(40, view.getPreferredSize().height));
 	this.views.addElement(view);
 	view.addDataChangeListener(this);
 	return view;

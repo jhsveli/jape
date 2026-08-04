@@ -59,7 +59,11 @@ public class OptionDialog extends JDialog
 	int optionType,
 	int messageType)
     {
-	super(SwingUtilities.getWindowAncestor(parent), title,
+	// Use the parent itself when it is a window: getWindowAncestor
+	// returns null for a top-level window, and an ownerless
+	// application-modal dialog may fail to display.
+	super((parent instanceof Window) ? (Window) parent
+	      : SwingUtilities.getWindowAncestor(parent), title,
 	      Dialog.ModalityType.APPLICATION_MODAL);
 
 	// Set fields

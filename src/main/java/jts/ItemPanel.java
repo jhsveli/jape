@@ -33,13 +33,14 @@ public class ItemPanel extends InsetPanel implements DataChangeListener
     private Mercenary merc;
 
     // Slot index -> item category the slot accepts; null means any item.
-    // First iteration: armor slots only. Headgear/hands/ammo filters will
-    // be added to this table in later iterations.
+    // Armor and headgear slots are filtered; hands/backpack stay unfiltered.
     private static final Integer[] SLOT_CATEGORY = new Integer[Mercenary.ITEM_COUNT];
     static {
 	SLOT_CATEGORY[Mercenary.HELMET_INDEX] = Integer.valueOf(ItemExemplar.HELMET_CATEGORY);
 	SLOT_CATEGORY[Mercenary.BODY_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.BODY_ARMOR_CATEGORY);
 	SLOT_CATEGORY[Mercenary.LEG_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.LEG_ARMOR_CATEGORY);
+	SLOT_CATEGORY[Mercenary.HEADGEAR_1_INDEX] = Integer.valueOf(ItemExemplar.HEAD_GEAR_CATEGORY);
+	SLOT_CATEGORY[Mercenary.HEADGEAR_2_INDEX] = Integer.valueOf(ItemExemplar.HEAD_GEAR_CATEGORY);
     }
 
     private static Integer categoryForSlot(int slotIndex)

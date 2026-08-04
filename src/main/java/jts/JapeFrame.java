@@ -22,6 +22,29 @@ public class JapeFrame extends JFrame implements DataChangeListener
 {
     private static final int DEFAULT_WIDTH = 450;
     private static final int DEFAULT_HEIGHT = 450;
+    /** Autosave debounce: milliseconds to wait after the last change. */
+    private static final int AUTOSAVE_DELAY = 300;
+    /** File monitor poll interval in milliseconds. */
+    private static final int FILE_WATCH_INTERVAL = 1000;
+
+    /** Equipped slots: headgear, armor, and hands. */
+    static final int[] EQUIPPED_SLOTS = {
+	Mercenary.HEADGEAR_1_INDEX, Mercenary.HEADGEAR_2_INDEX,
+	Mercenary.HELMET_INDEX, Mercenary.BODY_ARMOR_INDEX,
+	Mercenary.LEG_ARMOR_INDEX,
+	Mercenary.RIGHT_HAND_INDEX, Mercenary.LEFT_HAND_INDEX
+    };
+
+    /** Every item slot. */
+    static final int[] ALL_ITEM_SLOTS = allItemSlots();
+
+    private static int[] allItemSlots() {
+	int[] slots = new int[Mercenary.ITEM_COUNT];
+	for( int i = 0; i < slots.length; ++i ) {
+	    slots[i] = i;
+	}
+	return slots;
+    }
 
     // Major GUI elements
     private GridBagLayout layout = new GridBagLayout();
@@ -39,6 +62,23 @@ public class JapeFrame extends JFrame implements DataChangeListener
     private JMenu     helpMenu;
     private JMenuItem aboutItem;
 
+    // Toolbar
+    private JToolBar  toolBar;
+    private JButton   toolbarSaveItem;
+    private JCheckBox autosaveCheckbox;
+    private JButton   copyEquippedButton;
+    private JButton   pasteEquippedButton;
+    private JButton   copyAllButton;
+    private JButton   pasteAllButton;
+    private Timer     autosaveTimer;
+    private Timer     fileWatchTimer;
+    private long      fileLastModified;
+    private long      fileLength;
+
+    // Item copy/paste clipboards (raw item data per slot)
+    private byte[][]  equippedClipboard;
+    private byte[][]  allClipboard;
+
     // The save game engine
     private SaveGame saveGame;
     private boolean saveGameModified;
@@ -53,10 +93,34 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	// Menu
 	this.createMenuBar();
 
+	// Toolbar (Open/Save/autosave) above the panels
+	this.createToolBar();
+
+	// Debounced autosave: writes once, 300ms after the last change
+	this.autosaveTimer = new Timer(AUTOSAVE_DELAY, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    // Re-check at fire time: the checkbox or the save game may
+		    // have changed during the debounce window
+		    if( autosaveActive((autosaveCheckbox != null) &&
+				       autosaveCheckbox.isSelected(),
+				       saveGame) ) {
+			doSave();
+		    }
+		}});
+	this.autosaveTimer.setRepeats(false);
+
+	// File monitor: poll for external changes to the open save file
+	this.fileWatchTimer = new Timer(FILE_WATCH_INTERVAL, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    checkFileChanged();
+		}});
+	this.fileWatchTimer.start();
+
 	// Create body panel
 	JPanel body = new JPanel();
 	body.setLayout(this.layout);
-	this.setContentPane(body);
+	this.getContentPane().add(this.toolBar, BorderLayout.NORTH);
+	this.getContentPane().add(body, BorderLayout.CENTER);
 
 	// Create actor tree
 	this.actorTree = new JTree(new DefaultTreeModel(buildActorTree(null)));
@@ -186,6 +250,180 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	this.setJMenuBar(this.menuBar);
     }
 
+    private void createToolBar() {
+	ToolbarControls controls = buildToolBar(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doOpen();
+		}}, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doSave();
+		}}, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doCopyEquipped();
+		}}, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doPasteEquipped();
+		}}, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doCopyAll();
+		}}, new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    doPasteAll();
+		}});
+	this.toolBar = controls.toolBar;
+	this.toolbarSaveItem = controls.saveButton;
+	this.autosaveCheckbox = controls.autosaveCheckbox;
+	this.copyEquippedButton = controls.copyEquippedButton;
+	this.pasteEquippedButton = controls.pasteEquippedButton;
+	this.copyAllButton = controls.copyAllButton;
+	this.pasteAllButton = controls.pasteAllButton;
+	this.toolbarSaveItem.setEnabled(false);
+	this.copyEquippedButton.setEnabled(false);
+	this.pasteEquippedButton.setEnabled(false);
+	this.copyAllButton.setEnabled(false);
+	this.pasteAllButton.setEnabled(false);
+    }
+
+    /** The toolbar controls, collected so the frame can wire them up. */
+    static class ToolbarControls {
+	JToolBar toolBar;
+	JButton saveButton;
+	JCheckBox autosaveCheckbox;
+	JButton copyEquippedButton;
+	JButton pasteEquippedButton;
+	JButton copyAllButton;
+	JButton pasteAllButton;
+    }
+
+    /** Create the toolbar controls: Open.../Save, the item copy/paste
+     * buttons, and the default-enabled Autosave checkbox. */
+    static ToolbarControls buildToolBar(ActionListener openListener,
+					ActionListener saveListener,
+					ActionListener copyEquippedListener,
+					ActionListener pasteEquippedListener,
+					ActionListener copyAllListener,
+					ActionListener pasteAllListener)
+    {
+	ToolbarControls controls = new ToolbarControls();
+	controls.toolBar = new JToolBar();
+	controls.toolBar.setFloatable(false);
+
+	JButton openButton = new JButton("Open...");
+	openButton.addActionListener(openListener);
+	controls.toolBar.add(openButton);
+
+	controls.saveButton = new JButton("Save");
+	controls.saveButton.addActionListener(saveListener);
+	controls.toolBar.add(controls.saveButton);
+
+	controls.toolBar.addSeparator();
+
+	controls.copyEquippedButton = new JButton("Copy Equipped");
+	controls.copyEquippedButton.addActionListener(copyEquippedListener);
+	controls.toolBar.add(controls.copyEquippedButton);
+
+	controls.pasteEquippedButton = new JButton("Paste Equipped");
+	controls.pasteEquippedButton.addActionListener(pasteEquippedListener);
+	controls.toolBar.add(controls.pasteEquippedButton);
+
+	controls.copyAllButton = new JButton("Copy All");
+	controls.copyAllButton.addActionListener(copyAllListener);
+	controls.toolBar.add(controls.copyAllButton);
+
+	controls.pasteAllButton = new JButton("Paste All");
+	controls.pasteAllButton.addActionListener(pasteAllListener);
+	controls.toolBar.add(controls.pasteAllButton);
+
+	controls.toolBar.addSeparator();
+
+	controls.autosaveCheckbox = new JCheckBox("Autosave", true);
+	controls.toolBar.add(controls.autosaveCheckbox);
+
+	return controls;
+    }
+
+    /** Autosave rule: persist immediately when the checkbox is on and a
+     * save game is open. */
+    static boolean autosaveActive(boolean selected, SaveGame saveGame) {
+	return selected && saveGame != null;
+    }
+
+    /** Snapshot the given slots' item data (null entries for empty slots). */
+    static byte[][] snapshotItems(Mercenary merc, int[] slots) {
+	if( merc == null ) {
+	    return null;
+	}
+	byte[][] data = new byte[slots.length][];
+	for( int i = 0; i < slots.length; ++i ) {
+	    Item item = merc.items[slots[i]];
+	    data[i] = (item == null) ? null : item.encode().clone();
+	}
+	return data;
+    }
+
+    /** Write the clipboard into the given slots.  Empty clipboard entries
+     * clear the target slot (a zeroed "None" item), so pasting fully
+     * replicates the copied loadout. */
+    static void pasteItems(Mercenary merc, int[] slots, byte[][] clipboard) {
+	if( merc == null || clipboard == null ) {
+	    return;
+	}
+	for( int i = 0; i < slots.length; ++i ) {
+	    if( clipboard[i] != null ) {
+		merc.items[slots[i]] = new Item(clipboard[i].clone());
+	    } else {
+		merc.items[slots[i]] = new Item(new byte[Item.ITEM_LENGTH]);
+	    }
+	}
+    }
+
+    private void doCopyEquipped() {
+	this.equippedClipboard = snapshotItems(this.currentMerc, EQUIPPED_SLOTS);
+	this.updateToolbarStates();
+    }
+
+    private void doCopyAll() {
+	this.allClipboard = snapshotItems(this.currentMerc, ALL_ITEM_SLOTS);
+	this.updateToolbarStates();
+    }
+
+    private void doPasteEquipped() {
+	this.pasteToCurrent(EQUIPPED_SLOTS, this.equippedClipboard);
+    }
+
+    private void doPasteAll() {
+	this.pasteToCurrent(ALL_ITEM_SLOTS, this.allClipboard);
+    }
+
+    private void pasteToCurrent(int[] slots, byte[][] clipboard) {
+	if( this.currentMerc == null || clipboard == null ) {
+	    return;
+	}
+	pasteItems(this.currentMerc, slots, clipboard);
+
+	// Refresh the item panel and record the change (autosave included)
+	this.itemPanel.setActor(this.currentActor, this.currentMerc);
+	this.markModified();
+    }
+
+    /** Record a change and schedule the debounced autosave when enabled. */
+    private void markModified() {
+	this.saveGameModified = true;
+	if( autosaveActive((this.autosaveCheckbox != null) &&
+			   this.autosaveCheckbox.isSelected(),
+			   this.saveGame) ) {
+	    this.autosaveTimer.restart();
+	}
+    }
+
+    private void updateToolbarStates() {
+	boolean hasMerc = this.currentMerc != null;
+	this.copyEquippedButton.setEnabled(hasMerc);
+	this.copyAllButton.setEnabled(hasMerc);
+	this.pasteEquippedButton.setEnabled(hasMerc && this.equippedClipboard != null);
+	this.pasteAllButton.setEnabled(hasMerc && this.allClipboard != null);
+    }
+
     public boolean doAbout() {
 	new JapeAbout(this).setVisible(true);
 	return true;
@@ -220,6 +458,10 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	// Disable relevant menu items
 	this.saveItem.setEnabled(false);
 	this.closeItem.setEnabled(false);
+	this.toolbarSaveItem.setEnabled(false);
+
+	// Cancel any pending autosave
+	this.autosaveTimer.stop();
 
 	// Close current save
 	this.saveGame = null;
@@ -253,6 +495,14 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	this.currentDir = file.getParent();
 	String filename = file.getPath();
 
+	// Open the selected file
+	return this.loadSaveFile(filename);
+    }
+
+    /** Load the given save file into the editor.  On success replaces the
+     * current save game and refreshes the panels; on failure the current
+     * save game is left untouched. */
+    private boolean loadSaveFile(String filename) {
 	// Open the selected file
 	SaveGame saveGame = new SaveGame();
 	try {
@@ -310,6 +560,7 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	// Enable relevant menu items
 	this.saveItem.setEnabled(true);
 	this.closeItem.setEnabled(true);
+	this.toolbarSaveItem.setEnabled(true);
 
 	// Display the file
 	this.saveGame = saveGame;
@@ -325,7 +576,68 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	this.doSelectActor();
 	this.saveGameModified = false;
 
+	// Remember the on-disk state for the file monitor
+	this.updateFileSnapshot();
+
 	return true;
+    }
+
+    /** True when the file's current state differs from the snapshot. */
+    static boolean fileChanged(long snapshotLastModified, long snapshotLength,
+			       long currentLastModified, long currentLength)
+    {
+	return (currentLastModified != snapshotLastModified) ||
+	    (currentLength != snapshotLength);
+    }
+
+    /** Remember the current on-disk state of the open save file. */
+    private void updateFileSnapshot() {
+	if( this.saveGame == null ) {
+	    return;
+	}
+	File file = new File(this.saveGame.filename);
+	if( file.exists() ) {
+	    this.fileLastModified = file.lastModified();
+	    this.fileLength = file.length();
+	}
+    }
+
+    /** Poll the open save file; prompt the user if it changed on disk. */
+    private void checkFileChanged() {
+	if( this.saveGame == null ) {
+	    return;
+	}
+	File file = new File(this.saveGame.filename);
+	if( ! file.exists() ) {
+	    return;
+	}
+	long lastModified = file.lastModified();
+	long length = file.length();
+	if( ! fileChanged(this.fileLastModified, this.fileLength,
+			 lastModified, length) ) {
+	    return;
+	}
+
+	// Acknowledge the change before prompting so a timer tick during the
+	// modal dialog cannot re-enter and stack another prompt.
+	this.fileLastModified = lastModified;
+	this.fileLength = length;
+
+	// The file changed on disk since we last loaded or saved it
+	String message = "The file has changed on disk.\n";
+	if( this.saveGameModified ) {
+	    message += "You have unsaved changes that would be lost.\n";
+	}
+	message += "Reload it from disk?";
+	int option = OptionDialog.showConfirmDialog(
+	    this, message, this.getTitle(),
+	    OptionDialog.YES_NO_OPTION, OptionDialog.WARNING_MESSAGE);
+	if( option == OptionDialog.YES_OPTION ) {
+	    this.loadSaveFile(this.saveGame.filename);
+	    // loadSaveFile refreshes the snapshot on success; on failure the
+	    // snapshot above already reflects the on-disk state, so the same
+	    // change is not reported again on the next poll.
+	}
     }
 
     public boolean doSave() {
@@ -359,6 +671,9 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	this.saveGameModified = false;
 	this.statPanel.setModified(false);
 	this.itemPanel.setModified(false);
+
+	// Our own write is the new on-disk state for the file monitor
+	this.updateFileSnapshot();
 
 	return true;
     }
@@ -411,6 +726,7 @@ public class JapeFrame extends JFrame implements DataChangeListener
 	// Redisplay the gui
 	this.statPanel.setActor(this.currentActor, this.currentMerc);
 	this.itemPanel.setActor(this.currentActor, this.currentMerc);
+	this.updateToolbarStates();
     }
 
     // == Actor tree grouping ==
@@ -607,7 +923,7 @@ public class JapeFrame extends JFrame implements DataChangeListener
     }
 
     public void dataChanged(DataChangeEvent event) {
-	this.saveGameModified = true;
+	this.markModified();
     }
 
     // Class methods

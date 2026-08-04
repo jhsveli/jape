@@ -16,7 +16,9 @@ import javax.swing.*;
 public class JapeAbout extends JDialog {
     public JapeAbout(Component parent)
     {
-	super(SwingUtilities.getWindowAncestor(parent), "About JAPE",
+	// Use the parent itself when it is a window (see OptionDialog).
+	super((parent instanceof Window) ? (Window) parent
+	      : SwingUtilities.getWindowAncestor(parent), "About JAPE",
 	      Dialog.ModalityType.APPLICATION_MODAL);
 
 	// Create body panel

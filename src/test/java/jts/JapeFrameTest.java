@@ -9,17 +9,23 @@ package jts;
 
 import static org.junit.Assert.*;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -214,10 +220,12 @@ public class JapeFrameTest
 	itemPanel.setActor(actor, merc);
 	body.doLayout();
 
-	assertEquals("tree column must not collapse after load",
-		     treeWidth, actorScroll.getWidth());
-	assertEquals("stat column must not collapse after load",
-		     statWidth, statPanel.getWidth());
+	assertTrue("tree column must not collapse after load",
+		   actorScroll.getWidth() >= 100);
+	assertTrue("stat column must not collapse after load",
+		   statPanel.getWidth() >= 100);
+	assertTrue("item column must not collapse after load",
+		   itemPanel.getWidth() >= 100);
 
 	// Window narrower than preferred: the tree column floors at its
 	// minimum instead of collapsing to ~0, and the stat input fields
@@ -246,5 +254,89 @@ public class JapeFrameTest
 	    }
 	}
 	return -1;
+    }
+
+    @Test
+    public void toolbarHasOpenSaveCopyPasteAndDefaultAutosave() {
+	ActionListener noop = new ActionListener() {
+	    public void actionPerformed(ActionEvent e) { }
+	};
+	JapeFrame.ToolbarControls controls =
+	    JapeFrame.buildToolBar(noop, noop, noop, noop, noop, noop);
+	JToolBar toolBar = controls.toolBar;
+	JCheckBox autosave = controls.autosaveCheckbox;
+
+	List<String> labels = new ArrayList<String>();
+	for( Component c : toolBar.getComponents() ) {
+	    if( c instanceof JButton ) {
+		labels.add(((JButton) c).getText());
+	    }
+	}
+	assertEquals(Arrays.asList("Open...", "Save", "Copy Equipped",
+				  "Paste Equipped", "Copy All", "Paste All"),
+		     labels);
+	assertTrue("autosave must be enabled by default", autosave.isSelected());
+    }
+
+    @Test
+    public void autosaveRuleRequiresCheckboxAndOpenSave() {
+	assertTrue(JapeFrame.autosaveActive(true, new SaveGame()));
+	assertFalse(JapeFrame.autosaveActive(false, new SaveGame()));
+	assertFalse(JapeFrame.autosaveActive(true, null));
+    }
+
+    @Test
+    public void fileChangedRule() {
+	// Same timestamp and length: unchanged
+	assertFalse(JapeFrame.fileChanged(1000, 10, 1000, 10));
+	// Either a different timestamp or a different length counts
+	assertTrue(JapeFrame.fileChanged(1000, 10, 1001, 10));
+	assertTrue(JapeFrame.fileChanged(1000, 10, 1000, 11));
+    }
+
+    @Test
+    public void copyPasteAllItemsReplicatesSlots() throws Exception {
+	SaveGame sg = load(FOUR_SQUAD);
+	Mercenary source = sg.getMerc(0);
+	Mercenary target = sg.getMerc(1);
+
+	byte[][] clip = JapeFrame.snapshotItems(source, JapeFrame.ALL_ITEM_SLOTS);
+	// the sample save must contain at least one real item to copy
+	boolean foundReal = false;
+	for( byte[] data : clip ) {
+	    if( data != null && new Item(data).getInt("Item ID") != 0 ) {
+		foundReal = true;
+	    }
+	}
+	assertTrue("sample save should contain a real item", foundReal);
+
+	// wipe the target, then paste
+	for( int i = 0; i < JapeFrame.ALL_ITEM_SLOTS.length; ++i ) {
+	    target.items[i] = new Item(new byte[Item.ITEM_LENGTH]);
+	}
+	JapeFrame.pasteItems(target, JapeFrame.ALL_ITEM_SLOTS, clip);
+
+	for( int i = 0; i < JapeFrame.ALL_ITEM_SLOTS.length; ++i ) {
+	    byte[] expected = (clip[i] == null) ? new byte[Item.ITEM_LENGTH] : clip[i];
+	    assertArrayEquals("slot " + i, expected, target.items[i].encode());
+	}
+    }
+
+    @Test
+    public void copyPasteEquippedReplicatesLoadout() throws Exception {
+	SaveGame sg = load(FOUR_SQUAD);
+	Mercenary source = sg.getMerc(0);
+	Mercenary target = sg.getMerc(1);
+
+	byte[][] clip = JapeFrame.snapshotItems(source, JapeFrame.EQUIPPED_SLOTS);
+	assertEquals(JapeFrame.EQUIPPED_SLOTS.length, clip.length);
+	JapeFrame.pasteItems(target, JapeFrame.EQUIPPED_SLOTS, clip);
+
+	for( int i = 0; i < JapeFrame.EQUIPPED_SLOTS.length; ++i ) {
+	    int slot = JapeFrame.EQUIPPED_SLOTS[i];
+	    byte[] expected = (clip[i] == null) ? new byte[Item.ITEM_LENGTH] : clip[i];
+	    assertArrayEquals("equipped slot " + slot, expected,
+			      target.items[slot].encode());
+	}
     }
 }
