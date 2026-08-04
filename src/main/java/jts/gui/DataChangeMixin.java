@@ -10,7 +10,7 @@ import java.util.Vector;
 
 public class DataChangeMixin {
     // Instance data
-    private final Vector listeners = new Vector(1);
+    private final Vector<DataChangeListener> listeners = new Vector<>(1);
 
     // Instance methods
     public synchronized void addDataChangeListener(DataChangeListener l) {
@@ -30,7 +30,7 @@ public class DataChangeMixin {
     public void fireDataChangeEvent(DataChangeEvent event) {
         int size = this.listeners.size();
         for (int idx = 0; idx < size; ++idx) {
-            ((DataChangeListener) this.listeners.elementAt(idx)).dataChanged(event);
+            this.listeners.elementAt(idx).dataChanged(event);
         }
     }
 }

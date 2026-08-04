@@ -67,7 +67,7 @@ public class JNumberView extends JTextField implements FieldView, DocumentListen
 
         // Validate new value
         try {
-            if (newValue.equals("")) {
+            if (newValue.isEmpty()) {
                 newValue = "0";
             }
 
@@ -80,11 +80,7 @@ public class JNumberView extends JTextField implements FieldView, DocumentListen
             // Failure. Restore the last valid value. This is deferred so the
             // document is not mutated while it is notifying its listeners.
             final String revertValue = this.oldValue;
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    setText(revertValue);
-                }
-            });
+            SwingUtilities.invokeLater(() -> setText(revertValue));
         }
     }
 
@@ -127,12 +123,11 @@ public class JNumberView extends JTextField implements FieldView, DocumentListen
     }
 
     public String toString() {
-        String s = "jts.JNumberView[suppressEvents = " + suppressEvents + "," +
+        return "JNumberView[suppressEvents = " + suppressEvents + "," +
                 "fieldName = " + fieldName + "," +
                 "modified = " + modified + "," +
                 "oldValue = " + oldValue + "," +
                 "struct = " + struct + "]";
-        return s;
     }
 
     // Data Change event processing

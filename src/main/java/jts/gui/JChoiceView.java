@@ -16,18 +16,18 @@ import java.util.Vector;
 /**
  * A Swing choice field view. Swing replacement for ChoiceView.
  */
-public class JChoiceView extends JComboBox implements FieldView, ItemListener {
+public class JChoiceView extends JComboBox<String> implements FieldView, ItemListener {
     private boolean suppressEvents = false;
     private final String fieldName;
     private boolean modified = false;
     private String oldValue;
     private Structure struct;
 
-    public JChoiceView(String fieldName, Vector choices) {
+    public JChoiceView(String fieldName, Vector<String> choices) {
         super();
         this.fieldName = fieldName;
         for (int idx = 0; idx < choices.size(); ++idx) {
-            this.addItem(choices.elementAt(idx));
+            this.addItem((String) choices.elementAt(idx));
         }
         // Match AWT Choice behavior: the first item is initially selected
         this.setSelectedIndex(0);
@@ -54,12 +54,12 @@ public class JChoiceView extends JComboBox implements FieldView, ItemListener {
      * Replace the dropdown contents without firing change events, keeping
      * the current value selected when it is still offered.
      */
-    public void setChoices(Vector choices) {
+    public void setChoices(Vector<String> choices) {
         try {
             this.suppressEvents = true;
             this.removeAllItems();
             for (int idx = 0; idx < choices.size(); ++idx) {
-                this.addItem(choices.elementAt(idx));
+                this.addItem((String) choices.elementAt(idx));
             }
             String value = (this.struct == null) ? null : this.struct.get(this.fieldName);
             if (value != null) {

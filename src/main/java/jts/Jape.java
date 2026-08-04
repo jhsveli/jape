@@ -5,8 +5,8 @@ package jts;/*
   of the GNU Public License, incorporated herein by reference.
 */
 
-
 public class Jape {
+    public static final boolean debug = false;
     public static void main(String[] args) {
         try {
             int i = Long.decode(args[0]).intValue();

@@ -10,7 +10,7 @@ import java.util.Hashtable;
 
 public abstract class BasicStructure implements Structure {
     // Instance data
-    public Hashtable fields;
+    public Hashtable<String,Field> fields;
     public byte[] data;
     public Structure nextStructure;
 

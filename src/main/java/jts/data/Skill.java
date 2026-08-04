@@ -27,7 +27,7 @@ public class Skill {
     public static final int SKILL_ROOF_BONUS = 0xE;
     public static final int SKILL_CAMOUFLAGED = 0xF;
 
-    public static final Vector list = new Vector();
+    public static final Vector<String> list = new Vector<>();
 
     static {
         String[] temp = {
@@ -48,8 +48,8 @@ public class Skill {
                 "Roof Bonus",
                 "Camouflaged",
         };
-        for (int idx = 0; idx < temp.length; ++idx) {
-            list.addElement(temp[idx]);
+        for (String s : temp) {
+            list.addElement(s);
         }
     }
 

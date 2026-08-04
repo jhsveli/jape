@@ -13,15 +13,12 @@ import jts.data.Mercenary;
 import jts.data.SaveGame;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -68,21 +65,12 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         return slots;
     }
 
-    // Major GUI elements
-    private final GridBagLayout layout = new GridBagLayout();
     private final JTree actorTree;
     private final StatPanel statPanel;
     private final ItemPanel itemPanel;
 
-    // Menu
-    private JMenuBar menuBar;
-    private JMenu fileMenu;
-    private JMenuItem openItem;
     private JMenuItem saveItem;
     private JMenuItem closeItem;
-    private JMenuItem quitItem;
-    private JMenu helpMenu;
-    private JMenuItem aboutItem;
 
     // Toolbar
     private JToolBar toolBar;
@@ -93,7 +81,6 @@ public class JapeFrame extends JFrame implements DataChangeListener {
     private JButton copyAllButton;
     private JButton pasteAllButton;
     private final Timer autosaveTimer;
-    private final Timer fileWatchTimer;
     private long fileLastModified;
     private long fileLength;
 
@@ -118,30 +105,26 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         this.createToolBar();
 
         // Debounced autosave: writes once, 300ms after the last change
-        this.autosaveTimer = new Timer(AUTOSAVE_DELAY, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Re-check at fire time: the checkbox or the save game may
-                // have changed during the debounce window
-                if (autosaveActive((autosaveCheckbox != null) &&
-                                autosaveCheckbox.isSelected(),
-                        saveGame)) {
-                    doSave();
-                }
+        this.autosaveTimer = new Timer(AUTOSAVE_DELAY, e -> {
+            // Re-check at fire time: the checkbox or the save game may
+            // have changed during the debounce window
+            if (autosaveActive((autosaveCheckbox != null) &&
+                            autosaveCheckbox.isSelected(),
+                    saveGame)) {
+                doSave();
             }
         });
         this.autosaveTimer.setRepeats(false);
 
         // File monitor: poll for external changes to the open save file
-        this.fileWatchTimer = new Timer(FILE_WATCH_INTERVAL, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                checkFileChanged();
-            }
-        });
-        this.fileWatchTimer.start();
+        Timer fileWatchTimer = new Timer(FILE_WATCH_INTERVAL, e -> checkFileChanged());
+        fileWatchTimer.start();
 
         // Create body panel
         JPanel body = new JPanel();
-        body.setLayout(this.layout);
+        // Major GUI elements
+        GridBagLayout layout = new GridBagLayout();
+        body.setLayout(layout);
         this.getContentPane().add(this.toolBar, BorderLayout.NORTH);
         this.getContentPane().add(body, BorderLayout.CENTER);
 
@@ -151,20 +134,8 @@ public class JapeFrame extends JFrame implements DataChangeListener {
                 TreeSelectionModel.SINGLE_TREE_SELECTION);
         this.actorTree.setRootVisible(false);
         this.actorTree.setShowsRootHandles(true);
-        this.actorTree.addTreeSelectionListener(new TreeSelectionListener() {
-            public void valueChanged(TreeSelectionEvent e) {
-                doSelectActor();
-            }
-        });
-        JScrollPane actorScroll = new JScrollPane(this.actorTree);
-        // Match the 10px edge spacing of the stat/item panels on the
-        // window's left, top, and bottom; the right side stays 0 so the
-        // gap to the stat panel is unchanged.
-        actorScroll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
-        // Floor the tree column width so it never collapses to its tiny
-        // default minimum (~22px) when the window is narrower than the
-        // preferred width; nicknames stay readable even at small sizes.
-        actorScroll.setMinimumSize(new Dimension(135, 0));
+        this.actorTree.addTreeSelectionListener(e -> doSelectActor());
+        JScrollPane actorScroll = createActorScroll();
         GridBagConstraints c1 = new GridBagConstraints();
         c1.fill = GridBagConstraints.BOTH;
         c1.gridx = 0;
@@ -220,92 +191,62 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         this.repaint();
     }
 
+    private JScrollPane createActorScroll() {
+        JScrollPane actorScroll = new JScrollPane(this.actorTree);
+        // Match the 10px edge spacing of the stat/item panels on the
+        // window's left, top, and bottom; the right side stays 0 so the
+        // gap to the stat panel is unchanged.
+        actorScroll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 0));
+        // Floor the tree column width so it never collapses to its tiny
+        // default minimum (~22px) when the window is narrower than the
+        // preferred width; nicknames stay readable even at small sizes.
+        actorScroll.setMinimumSize(new Dimension(135, 0));
+        return actorScroll;
+    }
+
     private void createMenuBar() {
         // Create menu bar
-        this.menuBar = new JMenuBar();
+        // Menu
+        JMenuBar menuBar = new JMenuBar();
 
         // File menu
-        this.fileMenu = new JMenu("File");
-        this.menuBar.add(this.fileMenu);
+        JMenu fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);
 
-        this.openItem = new JMenuItem("Open...");
-        this.openItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doOpen();
-            }
-        });
-        this.fileMenu.add(this.openItem);
+        JMenuItem openItem = new JMenuItem("Open...");
+        openItem.addActionListener(e -> doOpen());
+        fileMenu.add(openItem);
 
         this.saveItem = new JMenuItem("Save");
-        this.saveItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doSave();
-            }
-        });
-        this.fileMenu.add(this.saveItem);
+        this.saveItem.addActionListener(e -> doSave());
+        fileMenu.add(this.saveItem);
         this.saveItem.setEnabled(false);
 
         this.closeItem = new JMenuItem("Close");
-        this.closeItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doClose();
-            }
-        });
-        this.fileMenu.add(this.closeItem);
+        this.closeItem.addActionListener(e -> doClose());
+        fileMenu.add(this.closeItem);
         this.closeItem.setEnabled(false);
 
-        this.fileMenu.addSeparator();
+        fileMenu.addSeparator();
 
-        this.quitItem = new JMenuItem("Quit");
-        this.quitItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doQuit();
-            }
-        });
-        this.fileMenu.add(this.quitItem);
+        JMenuItem quitItem = new JMenuItem("Quit");
+        quitItem.addActionListener(e -> doQuit());
+        fileMenu.add(quitItem);
 
         // About menu
-        this.helpMenu = new JMenu("Help");
-        this.menuBar.add(this.helpMenu);
+        JMenu helpMenu = new JMenu("Help");
+        menuBar.add(helpMenu);
 
-        this.aboutItem = new JMenuItem("About...");
-        this.aboutItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doAbout();
-            }
-        });
-        this.helpMenu.add(this.aboutItem);
+        JMenuItem aboutItem = new JMenuItem("About...");
+        aboutItem.addActionListener(e -> doAbout());
+        helpMenu.add(aboutItem);
 
         // Attach menubar to frame
-        this.setJMenuBar(this.menuBar);
+        this.setJMenuBar(menuBar);
     }
 
     private void createToolBar() {
-        ToolbarControls controls = buildToolBar(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doOpen();
-            }
-        }, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doSave();
-            }
-        }, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doCopyEquipped();
-            }
-        }, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doPasteEquipped();
-            }
-        }, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doCopyAll();
-            }
-        }, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doPasteAll();
-            }
-        });
+        ToolbarControls controls = buildToolBar(e -> doOpen(), e -> doSave(), e -> doCopyEquipped(), e -> doPasteEquipped(), e -> doCopyAll(), e -> doPasteAll());
         this.toolBar = controls.toolBar;
         this.toolbarSaveItem = controls.saveButton;
         this.autosaveCheckbox = controls.autosaveCheckbox;
@@ -471,9 +412,8 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         this.pasteAllButton.setEnabled(hasMerc && this.allClipboard != null);
     }
 
-    public boolean doAbout() {
+    public void doAbout() {
         new JapeAbout(this).setVisible(true);
-        return true;
     }
 
     public boolean doClose() {
@@ -514,11 +454,11 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         return true;
     }
 
-    public boolean doOpen() {
+    public void doOpen() {
         // Close any existing save
         boolean success = this.doClose();
         if (!success) {
-            return false;
+            return;
         }
 
         // Create open file chooser
@@ -533,14 +473,14 @@ public class JapeFrame extends JFrame implements DataChangeListener {
 
         // What did the user choose?
         if (result != JFileChooser.APPROVE_OPTION) {
-            return false;
+            return;
         }
         File file = fileChooser.getSelectedFile();
         this.currentDir = file.getParent();
         String filename = file.getPath();
 
         // Open the selected file
-        return this.loadSaveFile(filename);
+        this.loadSaveFile(filename);
     }
 
     /**
@@ -548,7 +488,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
      * current save game and refreshes the panels; on failure the current
      * save game is left untouched.
      */
-    private boolean loadSaveFile(String filename) {
+    private void loadSaveFile(String filename) {
         // Open the selected file
         SaveGame saveGame = new SaveGame();
         try {
@@ -561,7 +501,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
                             "Unexpected end of file reached.",
                     this.getTitle(),
                     OptionDialog.ERROR_MESSAGE);
-            return false;
+            return;
         } catch (FileNotFoundException e) {
             // Display error message
             OptionDialog.showMessageDialog(
@@ -570,7 +510,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
                             "The system cannot find the file specified.",
                     this.getTitle(),
                     OptionDialog.ERROR_MESSAGE);
-            return false;
+            return;
         } catch (IOException e) {
             // Display error message
             String errorMessage = e.getMessage();
@@ -583,7 +523,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
                             errorMessage,
                     this.getTitle(),
                     OptionDialog.ERROR_MESSAGE);
-            return false;
+            return;
         } catch (SaveGame.FormatException e) {
             // Display error message
             //e.printStackTrace(System.err);
@@ -594,7 +534,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
                             e.getMessage(),
                     this.getTitle(),
                     OptionDialog.ERROR_MESSAGE);
-            return false;
+            return;
         }
 
         // Enable relevant menu items
@@ -619,7 +559,6 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         // Remember the on-disk state for the file monitor
         this.updateFileSnapshot();
 
-        return true;
     }
 
     /**
@@ -720,21 +659,20 @@ public class JapeFrame extends JFrame implements DataChangeListener {
         return true;
     }
 
-    public boolean doQuit() {
+    public void doQuit() {
         // Close any existing save
         boolean success = this.doClose();
         if (!success) {
-            return false;
+            return;
         }
 
         // Close window
         this.setVisible(false);
         this.dispose();
         System.exit(0);
-        return true;
     }
 
-    private boolean doSelectActor() {
+    private void doSelectActor() {
         // Which node did the user select
         Actor actor = null;
         Mercenary merc = null;
@@ -752,7 +690,6 @@ public class JapeFrame extends JFrame implements DataChangeListener {
 
         // Do it
         this.doSetActor(actor, merc);
-        return true;
     }
 
     private void doSetActor(Actor actor, Mercenary merc) {
@@ -804,7 +741,7 @@ public class JapeFrame extends JFrame implements DataChangeListener {
 
     private static Set<String> recruitableLookup() {
         if (recruitableLookup == null) {
-            recruitableLookup = new HashSet<String>();
+            recruitableLookup = new HashSet<>();
             Collections.addAll(recruitableLookup, RECRUITABLE_NICKNAMES);
         }
         return recruitableLookup;

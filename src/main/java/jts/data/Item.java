@@ -46,7 +46,7 @@ public class Item extends BasicStructure {
     public static final int UNKNOWN_4_OFFSET = 0x1F;
     public static final int WEIGHT_OFFSET = 0x20;
 
-    public static Hashtable classFields = new Hashtable();
+    public static Hashtable<String, Field> classFields = new Hashtable<>();
 
     static {
         classFields.put("Item ID", new ChoiceField(new ShortField(ID_OFFSET), ItemExemplar.nameTable));
@@ -92,8 +92,7 @@ public class Item extends BasicStructure {
 
     public ItemExemplar getExemplar() {
         int fieldValue = this.getInt("Item ID");
-        ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(Integer.valueOf(fieldValue));
-        return exemplar;
+        return (ItemExemplar) ItemExemplar.exemplarTable.get(fieldValue);
     }
 
     public void set(String name, String value) {

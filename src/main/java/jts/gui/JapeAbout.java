@@ -8,12 +8,8 @@ package jts.gui;/*
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-//import java.io.File;
-//import java.io.IOException;
 
 public class JapeAbout extends JDialog {
     public JapeAbout(Component parent) {
@@ -37,17 +33,13 @@ public class JapeAbout extends JDialog {
         textPanel.add(new JLabel("JAME: A Jagged Alliance 2 Merc Editor", SwingConstants.CENTER));
         textPanel.add(new JLabel("Version 0.5", SwingConstants.CENTER));
         textPanel.add(new JLabel("https://github.com/jhsveli/jape", SwingConstants.CENTER));
-        textPanel.add(new JLabel("Originally created by Douglas Greiman. http://www.duggelz.org/", SwingConstants.CENTER));
+        textPanel.add(new JLabel("Originally created by Douglas Greiman. https://duggelz.org/", SwingConstants.CENTER));
 
         // Button bar
         JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
         buttonPanel.setLayout(new FlowLayout());
         JButton okButton = new JButton("OK");
-        okButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        okButton.addActionListener(e -> dispose());
         buttonPanel.add(okButton);
 
         // Add elements to dialog
@@ -64,15 +56,13 @@ public class JapeAbout extends JDialog {
         this.pack();
 
         // Put this dialog in the center of the parent frame
-        if (parent != null) {
-            Point parentLoc = parent.getLocation();
-            Dimension parentSize = parent.getSize();
-            Dimension size = this.getSize();
-            Point loc = new Point(
-                    parentLoc.x + (parentSize.width - size.width) / 2,
-                    parentLoc.y + (parentSize.height - size.height) / 2
-            );
-            this.setLocation(loc);
-        }
+        Point parentLoc = parent.getLocation();
+        Dimension parentSize = parent.getSize();
+        Dimension size = this.getSize();
+        Point loc = new Point(
+                parentLoc.x + (parentSize.width - size.width) / 2,
+                parentLoc.y + (parentSize.height - size.height) / 2
+        );
+        this.setLocation(loc);
     }
 }

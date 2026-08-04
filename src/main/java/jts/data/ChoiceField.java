@@ -10,32 +10,33 @@ import java.util.Hashtable;
 
 public class ChoiceField implements Field {
     private final Field baseField;
-    private String[] list;
+
+    // TODO: Fix hashtable two-way lookup pattern
     private final Hashtable table;
 
+    // TODO: Fix hashtable two-way lookup pattern
     public ChoiceField(Field baseField, Hashtable table) {
         this.baseField = baseField;
-        this.list = list;
         this.table = table;
     }
 
     public String get(byte[] data) {
         int value = this.baseField.getInt(data);
-        String str = (String) this.table.get(Integer.valueOf(value));
-        return str;
+        // TODO: Fix hashtable two-way lookup pattern
+        return (String) this.table.get(value);
     }
 
     public int getInt(byte[] data) {
-        int value = this.baseField.getInt(data);
-        return value;
+        return this.baseField.getInt(data);
     }
 
     public void set(byte[] data, String str) throws NumberFormatException {
+        // TODO: Fix hashtable two-way lookup pattern
         Integer val = (Integer) this.table.get(str);
         if (val == null) {
             return;
         }
-        int value = val.intValue();
+        int value = val;
         this.setInt(data, value);
     }
 

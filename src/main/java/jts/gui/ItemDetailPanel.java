@@ -16,9 +16,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
-    // Gui Elements
-    private final Component parent;
-    private final GridBagLayout layout = new GridBagLayout();
     private final GridBagConstraints constraint = new GridBagConstraints();
 
     // State machine
@@ -28,34 +25,28 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
     private Item item;
 
     // Data views
-    private final Vector views = new Vector();
-    private final Vector ammoComponents = new Vector();
-    private final Vector attachmentComponents = new Vector();
-    private final Vector moneyComponents = new Vector();
+    private final Vector<Component> views = new Vector<>();
+    private final Vector<Component> ammoComponents = new Vector<>();
+    private final Vector<Component> attachmentComponents = new Vector<>();
+    private final Vector<Component> moneyComponents = new Vector<>();
 
     private final JChoiceView idView;
     private final JNumberView quantityView;
     private final JLabel itemPctLabel;
     private final JNumberView[] itemPctViews = new JNumberView[6];
-    private final JLabel ammoIdLabel;
     private final JChoiceView ammoIdView;
-    private final JLabel ammoQuantityLabel;
     private final JNumberView ammoQuantityView;
-    private final JLabel ammoVarietyLabel;
     private final JNumberView ammoVarietyView;
-    private final JLabel ammoPctLabel;
     private final JNumberView ammoPctView;
     private final JChoiceView[] attachmentIdViews = new JChoiceView[4];
     private final JNumberView[] attachmentPctViews = new JNumberView[4];
-    private final JNumberView weightView;
-    private final JLabel moneyValueLabel;
-    private final JNumberView moneyValueView;
 
     // Instance methods
     public ItemDetailPanel(Component parent) {
         super(new Insets(10, 10, 10, 10));
-        this.parent = parent;
-        this.setLayout(this.layout);
+        // Gui Elements
+        GridBagLayout layout = new GridBagLayout();
+        this.setLayout(layout);
 
         // Constraints
         this.constraint.anchor = GridBagConstraints.SOUTHWEST;
@@ -67,40 +58,40 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
 
         // Field views
         this.newRow();
-        this.addText(1, "Item");
+        this.addText("Item");
         this.idView = addItemView(6, "Item ID", ItemExemplar.nameList);
 
         this.newRow();
-        this.addText(1, "Number of Items");
+        this.addText("Number of Items");
         this.quantityView = addByteView(1, "Quantity");
 
         this.newRow();
-        this.itemPctLabel = this.addText(1, "Item %");
+        this.itemPctLabel = this.addText("Item %");
         for (int idx = 0; idx < 6; ++idx) {
             this.itemPctViews[idx] = addByteView(1, "Item " + (idx + 1) + " %");
         }
 
         this.newRow();
-        this.ammoIdLabel = this.addText(1, "Ammo");
-        this.ammoComponents.addElement(this.ammoIdLabel);
+        JLabel ammoIdLabel = this.addText("Ammo");
+        this.ammoComponents.addElement(ammoIdLabel);
         this.ammoIdView = addItemView(6, "Ammo ID", ItemExemplar.ammoNameList);
         this.ammoComponents.addElement(this.ammoIdView);
 
         this.newRow();
-        this.ammoQuantityLabel = this.addText(1, "Number of Rounds");
-        this.ammoComponents.addElement(this.ammoQuantityLabel);
+        JLabel ammoQuantityLabel = this.addText("Number of Rounds");
+        this.ammoComponents.addElement(ammoQuantityLabel);
         this.ammoQuantityView = addByteView(1, "Ammo Quantity");
         this.ammoComponents.addElement(this.ammoQuantityView);
 
         this.newRow();
-        this.ammoVarietyLabel = this.addText(1, "Ammo Variety");
-        this.ammoComponents.addElement(this.ammoVarietyLabel);
+        JLabel ammoVarietyLabel = this.addText("Ammo Variety");
+        this.ammoComponents.addElement(ammoVarietyLabel);
         this.ammoVarietyView = addByteView(1, "Ammo Variety");
         this.ammoComponents.addElement(this.ammoVarietyView);
 
         this.newRow();
-        this.ammoPctLabel = this.addText(1, "Ammo %");
-        this.ammoComponents.addElement(this.ammoPctLabel);
+        JLabel ammoPctLabel = this.addText("Ammo %");
+        this.ammoComponents.addElement(ammoPctLabel);
         this.ammoPctView = addByteView(1, "Ammo %");
         this.ammoComponents.addElement(this.ammoPctView);
 
@@ -108,7 +99,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
             String str = "Attachment " + (idx + 1);
 
             this.newRow();
-            JLabel label = this.addText(1, str);
+            JLabel label = this.addText(str);
             this.attachmentComponents.addElement(label);
 
             JChoiceView view = addItemView(6, str + " ID", ItemExemplar.attachmentNameList);
@@ -119,19 +110,19 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
             this.attachmentPctViews[idx] = pctView;
             this.attachmentComponents.addElement(pctView);
 
-            JLabel pctLabel = this.addText(1, "%");
+            JLabel pctLabel = this.addText("%");
             this.attachmentComponents.addElement(pctLabel);
         }
 
         this.newRow();
-        this.addText(1, "Weight (x 0.1 kg)");
-        this.weightView = this.addByteView(1, "Weight");
+        this.addText("Weight (x 0.1 kg)");
+        JNumberView weightView = this.addByteView(1, "Weight");
 
         this.newRow();
-        this.moneyValueLabel = this.addText(1, "Money Value");
-        this.moneyComponents.addElement(this.moneyValueLabel);
-        this.moneyValueView = this.addShortView(2, "Money Value");
-        this.moneyComponents.addElement(this.moneyValueView);
+        JLabel moneyValueLabel = this.addText("Money Value");
+        this.moneyComponents.addElement(moneyValueLabel);
+        JNumberView moneyValueView = this.addShortView(2, "Money Value");
+        this.moneyComponents.addElement(moneyValueView);
 
         //addByteStat("Unknown 1", "Unknown 1");
         //addByteStat("Unknown 4", "Unknown 4");
@@ -158,14 +149,14 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
         this.constraint.gridx += colwidth;
     }
 
-    private JNumberView addNumberView(int colwidth, String statField, int charWidth) {
-        JNumberView view = new JNumberView(statField, charWidth);
+    private JNumberView addNumberView(String statField) {
+        JNumberView view = new JNumberView(statField, 3);
         // Input cells take weight and horizontal fill so they shrink
         // gradually when the panel is narrower than preferred, instead of
         // snapping to the tiny JTextField minimum (same fix as StatPanel).
         this.constraint.fill = GridBagConstraints.HORIZONTAL;
         this.constraint.weightx = 1;
-        this.addComponent(colwidth, view);
+        this.addComponent(1, view);
         this.constraint.fill = GridBagConstraints.NONE;
         this.constraint.weightx = 0;
         this.views.addElement(view);
@@ -173,27 +164,25 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
         return view;
     }
 
-    private JLabel addText(int colwidth, String text) {
-        return this.addText(colwidth, text, SwingConstants.LEFT);
-    }
 
-    private JLabel addText(int colwidth, String text, int align) {
+
+    private JLabel addText(String text) {
         // Create new label
-        JLabel label = new JLabel(text, align);
+        JLabel label = new JLabel(text, SwingConstants.LEFT);
         this.constraint.fill = GridBagConstraints.HORIZONTAL;
-        this.addComponent(colwidth, label);
+        this.addComponent(1, label);
         return label;
     }
 
     public JNumberView addByteView(int colwidth, String statField) {
-        return this.addNumberView(1, statField, 3);
+        return this.addNumberView(statField);
     }
 
     public JNumberView addShortView(int colwidth, String statField) {
-        return this.addNumberView(1, statField, 3);
+        return this.addNumberView(statField);
     }
 
-    public JChoiceView addItemView(int colwidth, String statField, Vector statChoices) {
+    public JChoiceView addItemView(int colwidth, String statField, Vector<String> statChoices) {
         // Create new view
         JChoiceView view = new JChoiceView(statField, statChoices);
         // Combos get weight and a smaller minimum so they share the shrink
@@ -240,7 +229,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
         }
 
         // Update views from data sources
-        for (Enumeration e = this.views.elements(); e.hasMoreElements(); ) {
+        for (Enumeration<Component> e = this.views.elements(); e.hasMoreElements(); ) {
             FieldView view = (FieldView) e.nextElement();
             view.setStruct(item);
             view.refresh();
@@ -257,12 +246,12 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
      * Build the Item ID dropdown entries for the given allowed category
      * (null = every item). "None" is always offered first.
      */
-    private Vector buildItemChoices(Integer allowedCategory) {
+    private Vector<String> buildItemChoices(Integer allowedCategory) {
         if (allowedCategory == null) {
             return ItemExemplar.nameList;
         }
 
-        Vector choices = buildChoices(allowedCategory.intValue());
+        Vector<String> choices = buildChoices(allowedCategory);
         this.keepCurrentVisible(choices, "Item ID");
         return choices;
     }
@@ -270,8 +259,8 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
     /**
      * Build the Ammo ID dropdown entries: ammo items only.
      */
-    private Vector buildAmmoChoices() {
-        Vector choices = buildChoices(ItemExemplar.AMMO_CATEGORY);
+    private Vector<String> buildAmmoChoices() {
+        Vector<String> choices = buildChoices(ItemExemplar.AMMO_CATEGORY);
         this.keepCurrentVisible(choices, "Ammo ID");
         return choices;
     }
@@ -282,7 +271,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
      * (ceramic plates); other item types keep the original mixed list
      * (their attachment fields are disabled anyway).
      */
-    private Vector buildAttachmentChoices(int attachmentIndex) {
+    private Vector<String> buildAttachmentChoices(int attachmentIndex) {
         ItemExemplar exemplar = (this.item == null) ? null : this.item.getExemplar();
         int category;
         if (exemplar != null && exemplar.category == ItemExemplar.WEAPON_CATEGORY) {
@@ -290,12 +279,12 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
         } else if (exemplar != null && exemplar.category == ItemExemplar.BODY_ARMOR_CATEGORY) {
             category = ItemExemplar.ARMOR_ATTACHMENT_CATEGORY;
         } else {
-            Vector choices = copyList(ItemExemplar.attachmentNameList);
+            Vector<String> choices = copyList(ItemExemplar.attachmentNameList);
             this.keepCurrentVisible(choices, "Attachment " + (attachmentIndex + 1) + " ID");
             return choices;
         }
 
-        Vector choices = buildChoices(category);
+        Vector<String> choices = buildChoices(category);
         this.keepCurrentVisible(choices, "Attachment " + (attachmentIndex + 1) + " ID");
         return choices;
     }
@@ -304,8 +293,8 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
      * Build a dropdown list containing "None" and every item of the given
      * category, in the original item order.
      */
-    private Vector buildChoices(int category) {
-        Vector choices = new Vector();
+    private Vector<String> buildChoices(int category) {
+        Vector<String> choices = new Vector<>();
         choices.addElement("None");
         for (int idx = 0; idx < ItemExemplar.nameList.size(); ++idx) {
             String name = (String) ItemExemplar.nameList.elementAt(idx);
@@ -320,8 +309,8 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
     /**
      * Copy a shared list so it can be modified (e.g. by keepCurrentVisible).
      */
-    private Vector copyList(Vector source) {
-        Vector copy = new Vector();
+    private Vector<String> copyList(Vector<String> source) {
+        Vector<String> copy = new Vector<>();
         for (int idx = 0; idx < source.size(); ++idx) {
             copy.addElement(source.elementAt(idx));
         }
@@ -332,7 +321,7 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
      * If the slot already holds a known item that isn't in the filtered
      * list, keep it visible so the UI doesn't lie about what's equipped.
      */
-    private void keepCurrentVisible(Vector choices, String fieldName) {
+    private void keepCurrentVisible(Vector<String> choices, String fieldName) {
         if (this.item != null) {
             String current = this.item.get(fieldName);
             if (current != null && !current.equals("None") && !choices.contains(current)) {
@@ -341,8 +330,8 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
         }
     }
 
-    public void setEnabled(Vector views, boolean enabled) {
-        for (Enumeration e = views.elements(); e.hasMoreElements(); ) {
+    public void setEnabled(Vector<Component> views, boolean enabled) {
+        for (Enumeration<Component> e = views.elements(); e.hasMoreElements(); ) {
             Component view = (Component) e.nextElement();
             view.setEnabled(enabled);
         }
@@ -417,10 +406,10 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
             //	    System.err.println(" idview");
 
             // Make the input more palatable
-            if ((oldValue == null) || (oldValue == "")) {
+            if ((oldValue == null) || (oldValue.isEmpty())) {
                 oldValue = "None";
             }
-            if ((newValue == null) || (newValue == "")) {
+            if ((newValue == null) || (newValue.isEmpty())) {
                 newValue = "None";
             }
 
@@ -463,17 +452,17 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
             //	    System.err.println(" ammoIdView");
 
             // Make the input more palatable
-            if ((oldValue == null) || (oldValue == "")) {
+            if ((oldValue == null) || (oldValue.isEmpty())) {
                 oldValue = "None";
             }
-            if ((newValue == null) || (newValue == "")) {
+            if ((newValue == null) || (newValue.isEmpty())) {
                 newValue = "None";
             }
 
             // If switching to new ammo, set variety
             if ((!newValue.equals("None")) && (!newValue.equals(oldValue))) {
                 int ammoId = this.item.getInt("Ammo ID");
-                ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(Integer.valueOf(ammoId));
+                ItemExemplar exemplar = (ItemExemplar) ItemExemplar.exemplarTable.get(ammoId);
                 System.err.println("" + exemplar.ammoVariety);
                 this.ammoVarietyView.setText("" + exemplar.ammoVariety);
                 this.ammoQuantityView.setText("" + exemplar.ammoCapacity);
@@ -486,10 +475,10 @@ public class ItemDetailPanel extends InsetPanel implements DataChangeListener {
             for (int idx = 0; idx < this.attachmentIdViews.length; ++idx) {
                 if (view == this.attachmentIdViews[idx]) {
                     // Make the input more palatable
-                    if ((oldValue == null) || (oldValue == "")) {
+                    if ((oldValue == null) || (oldValue.isEmpty())) {
                         oldValue = "None";
                     }
-                    if ((newValue == null) || (newValue == "")) {
+                    if ((newValue == null) || (newValue.isEmpty())) {
                         newValue = "None";
                     }
 

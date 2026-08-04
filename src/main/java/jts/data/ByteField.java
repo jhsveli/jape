@@ -18,8 +18,7 @@ class ByteField implements Field {
     }
 
     public int getInt(byte[] data) {
-        int value = ((int) data[this.offset]) & 0xFF;
-        return value;
+        return ((int) data[this.offset]) & 0xFF;
     }
 
     public void set(byte[] data, String str) throws NumberFormatException {

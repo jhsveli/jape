@@ -18,9 +18,8 @@ class ShortField implements Field {
     }
 
     public int getInt(byte[] data) {
-        int value = ((((int) data[this.offset]) & 0xFF) |
+        return ((((int) data[this.offset]) & 0xFF) |
                 ((((int) data[this.offset + 1]) & 0xFF) << 8));
-        return value;
     }
 
     public void set(byte[] data, String str) throws NumberFormatException {

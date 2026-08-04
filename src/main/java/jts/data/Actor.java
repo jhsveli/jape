@@ -9,6 +9,7 @@ package jts.data;/*
 import java.util.Hashtable;
 
 // == struct MERCPROFILESTRUCT
+@SuppressWarnings("unused")
 public class Actor extends BasicStructure {
     // Static data
     public static final int NAME_OFFSET = 0x0;
@@ -67,7 +68,7 @@ public class Actor extends BasicStructure {
 
     // Instance methods
     public Actor(byte[] rawData, int savedGameVersion, int[] table) {
-        super(new Hashtable());
+        super(new Hashtable<>());
         this.savedGameVersion = savedGameVersion;
         this.decode(rawData, table);
 

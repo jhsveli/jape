@@ -18,9 +18,6 @@ import java.awt.event.ActionListener;
 import java.util.Vector;
 
 public class ItemPanel extends InsetPanel implements DataChangeListener {
-    // Gui Elements
-    private final Component parent;
-    private final GridBagLayout layout = new GridBagLayout();
     private final GridBagConstraints constraint = new GridBagConstraints();
     private final ItemDetailPanel itemDetailPanel;
     /**
@@ -34,8 +31,6 @@ public class ItemPanel extends InsetPanel implements DataChangeListener {
     // State machine
     private boolean modified = false;
 
-    // Data sources
-    private Actor actor;
     private Mercenary merc;
 
     // Slot index -> item category the slot accepts; null means any item.
@@ -43,11 +38,11 @@ public class ItemPanel extends InsetPanel implements DataChangeListener {
     private static final Integer[] SLOT_CATEGORY = new Integer[Mercenary.ITEM_COUNT];
 
     static {
-        SLOT_CATEGORY[Mercenary.HELMET_INDEX] = Integer.valueOf(ItemExemplar.HELMET_CATEGORY);
-        SLOT_CATEGORY[Mercenary.BODY_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.BODY_ARMOR_CATEGORY);
-        SLOT_CATEGORY[Mercenary.LEG_ARMOR_INDEX] = Integer.valueOf(ItemExemplar.LEG_ARMOR_CATEGORY);
-        SLOT_CATEGORY[Mercenary.HEADGEAR_1_INDEX] = Integer.valueOf(ItemExemplar.HEAD_GEAR_CATEGORY);
-        SLOT_CATEGORY[Mercenary.HEADGEAR_2_INDEX] = Integer.valueOf(ItemExemplar.HEAD_GEAR_CATEGORY);
+        SLOT_CATEGORY[Mercenary.HELMET_INDEX] = ItemExemplar.HELMET_CATEGORY;
+        SLOT_CATEGORY[Mercenary.BODY_ARMOR_INDEX] = ItemExemplar.BODY_ARMOR_CATEGORY;
+        SLOT_CATEGORY[Mercenary.LEG_ARMOR_INDEX] = ItemExemplar.LEG_ARMOR_CATEGORY;
+        SLOT_CATEGORY[Mercenary.HEADGEAR_1_INDEX] = ItemExemplar.HEAD_GEAR_CATEGORY;
+        SLOT_CATEGORY[Mercenary.HEADGEAR_2_INDEX] = ItemExemplar.HEAD_GEAR_CATEGORY;
     }
 
     private static Integer categoryForSlot(int slotIndex) {
@@ -67,15 +62,16 @@ public class ItemPanel extends InsetPanel implements DataChangeListener {
     }
 
     // Data Views
-    private final Vector views = new Vector();
+    private final Vector<Component> views = new Vector<>();
     private ItemView currentView;
     private Color defaultBackground;
 
     // Instance methods
     public ItemPanel(Component parent) {
         super(new Insets(10, 10, 10, 10));
-        this.parent = parent;
-        this.setLayout(this.layout);
+        // Gui Elements
+        GridBagLayout layout = new GridBagLayout();
+        this.setLayout(layout);
 
         // Constraints
         this.constraint.anchor = GridBagConstraints.SOUTHWEST;
@@ -141,7 +137,7 @@ public class ItemPanel extends InsetPanel implements DataChangeListener {
 
         // Create item detail panel
         this.newRow();
-        this.itemDetailPanel = new ItemDetailPanel(this.parent);
+        this.itemDetailPanel = new ItemDetailPanel(parent);
         this.constraint.gridwidth = 3;
         this.constraint.weightx = 1;
         this.constraint.weighty = 1;
@@ -177,16 +173,12 @@ public class ItemPanel extends InsetPanel implements DataChangeListener {
         final ItemView view = new ItemView(index);
         this.addComponent(1, view);
         this.views.addElement(view);
-        view.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                doItemSelected(view);
-            }
-        });
+        view.addActionListener(e -> doItemSelected(view));
     }
 
     public void setActor(Actor actor, Mercenary merc) {
         // Set fields
-        this.actor = actor;
+        // Data sources
         this.merc = merc;
 
         // Update views from data sources

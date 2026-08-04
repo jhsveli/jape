@@ -8,6 +8,7 @@ package jts.gui;/*
 
 import jts.data.Structure;
 
+@SuppressWarnings("unused")
 public interface FieldView {
     String getFieldName();
 

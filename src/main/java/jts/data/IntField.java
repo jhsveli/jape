@@ -18,11 +18,10 @@ class IntField implements Field {
     }
 
     public int getInt(byte[] data) {
-        int value = ((((int) data[this.offset]) & 0xFF) |
+        return ((((int) data[this.offset]) & 0xFF) |
                 ((((int) data[this.offset + 1]) & 0xFF) << 8) |
                 ((((int) data[this.offset + 2]) & 0xFF) << 16) |
                 ((((int) data[this.offset + 3]) & 0xFF) << 24));
-        return value;
     }
 
     public void set(byte[] data, String str) throws NumberFormatException {

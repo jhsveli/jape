@@ -17,9 +17,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public class StatPanel extends InsetPanel implements DataChangeListener {
-    // Gui Elements
-    private final Component parent;
-    private final GridBagLayout layout = new GridBagLayout();
     private final GridBagConstraints constraint = new GridBagConstraints();
 
     // State machine
@@ -27,16 +24,16 @@ public class StatPanel extends InsetPanel implements DataChangeListener {
 
     // Data sources
     private Actor actor;
-    private Mercenary merc;
 
     // Data Views
-    private final Vector views = new Vector();
+    private final Vector<FieldView> views = new Vector<>();
 
     // Instance methods
     public StatPanel(Component parent) {
         super(new Insets(10, 10, 10, 10));
-        this.parent = parent;
-        this.setLayout(this.layout);
+        // Gui Elements
+        GridBagLayout layout = new GridBagLayout();
+        this.setLayout(layout);
 
         // Constraints
         this.constraint.anchor = GridBagConstraints.SOUTHWEST;
@@ -53,13 +50,13 @@ public class StatPanel extends InsetPanel implements DataChangeListener {
 
         // Health, current max and inc
         this.newRow();
-        this.addText(1, "Health", SwingConstants.LEFT);
+        this.addText("Health", SwingConstants.LEFT);
         this.addNumberView(1, "Health", 3);
-        this.addText(1, "/", SwingConstants.CENTER);
+        this.addText("/", SwingConstants.CENTER);
         this.addNumberView(1, "Max Health", 3);
-        this.addText(1, "(+", SwingConstants.RIGHT);
+        this.addText("(+", SwingConstants.RIGHT);
         this.addNumberView(1, "Health Inc", 3);
-        this.addText(1, ")", SwingConstants.LEFT);
+        this.addText(")", SwingConstants.LEFT);
 
         // Ability scores
         this.addByteStat("Energy", "Energy");
@@ -124,25 +121,25 @@ public class StatPanel extends InsetPanel implements DataChangeListener {
         view.addDataChangeListener(this);
     }
 
-    private void addText(int colwidth, String text, int align) {
+    private void addText(String text, int align) {
         // Create new label
         JLabel label = new JLabel(text, align);
-        this.addComponent(colwidth, label);
+        this.addComponent(1, label);
     }
 
     public void addByteStat(String statTitle, String statField) {
         this.newRow();
-        this.addText(1, statTitle, SwingConstants.LEFT);
+        this.addText(statTitle, SwingConstants.LEFT);
         this.addNumberView(1, statField, 3);
     }
 
     public void addIncStat(String statTitle, String statField, String incStatField) {
         this.newRow();
-        this.addText(1, statTitle, SwingConstants.LEFT);
+        this.addText(statTitle, SwingConstants.LEFT);
         this.addNumberView(1, statField, 3);
-        this.addText(1, "(+", SwingConstants.RIGHT);
+        this.addText("(+", SwingConstants.RIGHT);
         this.addNumberView(1, incStatField, 3);
-        this.addText(1, ")", SwingConstants.LEFT);
+        this.addText(")", SwingConstants.LEFT);
     }
 
     public void addShortStat(String statTitle, String statField) {
@@ -151,13 +148,13 @@ public class StatPanel extends InsetPanel implements DataChangeListener {
 
     public void addStringStat(String statTitle, String statField, int charWidth) {
         this.newRow();
-        this.addText(1, statTitle, SwingConstants.LEFT);
+        this.addText(statTitle, SwingConstants.LEFT);
         this.addNumberView(GridBagConstraints.REMAINDER, statField, charWidth);
     }
 
-    public void addChoiceStat(String statTitle, String statField, Vector statChoices) {
+    public void addChoiceStat(String statTitle, String statField, Vector<String> statChoices) {
         this.newRow();
-        this.addText(1, statTitle, SwingConstants.LEFT);
+        this.addText(statTitle, SwingConstants.LEFT);
         JChoiceView view = new JChoiceView(statField, statChoices);
         // Input cells take weight and horizontal fill (see addNumberView).
         this.constraint.fill = GridBagConstraints.HORIZONTAL;
@@ -172,19 +169,18 @@ public class StatPanel extends InsetPanel implements DataChangeListener {
     public void setActor(Actor actor, Mercenary merc) {
         // Update fields
         this.actor = actor;
-        this.merc = merc;
 
         Structure struct;
-        if (this.merc != null) {
-            struct = this.merc;
+        if (merc != null) {
+            struct = merc;
             struct.chain(this.actor);
         } else {
             struct = this.actor;
         }
 
         // Update views from data sources
-        for (Enumeration e = this.views.elements(); e.hasMoreElements(); ) {
-            FieldView view = (FieldView) e.nextElement();
+        for (Enumeration<FieldView> e = this.views.elements(); e.hasMoreElements(); ) {
+            FieldView view = e.nextElement();
             view.setStruct(struct);
             view.refresh();
         }

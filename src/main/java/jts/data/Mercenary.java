@@ -207,9 +207,8 @@ public class Mercenary extends BasicStructure {
             byte[] ciphertext = new byte[CIPHERTEXT_LENGTH];
             System.arraycopy(rawData, CIPHERTEXT_OFFSET, ciphertext, 0,
                     CIPHERTEXT_LENGTH);
-            byte[] plaintext = JapeAlg.Decode(ciphertext, ciphertext.length,
+            this.data = JapeAlg.Decode(ciphertext, ciphertext.length,
                     table);
-            this.data = plaintext;
 
             // Instantiate the merc's items
             for (int idx = 0; idx < ITEM_COUNT; ++idx) {

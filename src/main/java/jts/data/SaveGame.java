@@ -8,6 +8,9 @@ package jts.data;/*
 
 import java.io.*;
 
+import static jts.Jape.debug;
+
+@SuppressWarnings("unused")
 public class SaveGame {
     public static class FormatException extends Exception {
         public FormatException(String message) {
@@ -297,10 +300,12 @@ public class SaveGame {
         }
     }
 
-    // Read all no.jts.Mercenary data
+    // Read all Mercenary data
     public void loadMercs() throws IOException, FormatException {
-        //System.out.println("mercOffset = 0x" +
-        //Integer.toHexString(this.mercOffset));
+        if (debug) {
+            System.out.println("mercOffset = 0x" +
+            Integer.toHexString(this.mercOffset));
+        }
         this.file.seek(this.mercOffset);
 
         // Read the initial run of inactive soldiers (may be none)
@@ -315,7 +320,8 @@ public class SaveGame {
             }
             mercIdx++;
             this.mercOffset++;
-            //System.out.println("Read 1 inactive entry");
+
+            if (debug) { System.out.println("Read 1 inactive entry");}
         }
 
         // Read active soldiers.  Note that each mercData starts with
@@ -466,8 +472,7 @@ public class SaveGame {
                         (plaintext[5] == 0) &&
                         (plaintext[7] == 0)) {
                     // We have a winner
-                    int[] results = {mainTable, subTable};
-                    return results;
+                    return new int[]{mainTable, subTable};
                 }
 
             }
@@ -478,8 +483,7 @@ public class SaveGame {
                 (ciphertext[3] == 0) &&
                 (ciphertext[5] == 0) &&
                 (ciphertext[7] == 0)) {
-            int[] results = {-1, -1};
-            return results;
+            return new int[]{-1, -1};
         }
 
         return null;
@@ -529,11 +533,10 @@ public class SaveGame {
      */
     public int readIntLE(DataInput d) throws IOException {
         int i = d.readInt();
-        int j = (((i & 0x000000FF) << 24) |
+        return (((i & 0x000000FF) << 24) |
                 ((i & 0x0000FF00) << 8) |
                 ((i & 0x00FF0000) >>> 8) |
                 ((i & 0xFF000000) >>> 24));
-        return j;
     }
 
     /**
@@ -617,31 +620,4 @@ public class SaveGame {
             objecttypeLoad_103(file, mercData);
         }
     }
-
-    /**
-     * main() for testing
-     */
-    public static void main(String[] args) {
-        File saveDir = new File("Saves");
-        File[] filenames = saveDir.listFiles();
-        for (int idx = 0; idx < filenames.length; ++idx) {
-            File filename = filenames[idx];
-            if (filename.getName().endsWith(".sav")) {
-                SaveGame saveGame = new SaveGame();
-                try {
-                    saveGame.load(filename.getPath());
-                } catch (IOException e) {
-                    e.printStackTrace(System.err);
-                    //System.exit(1);
-                } catch (SaveGame.FormatException e) {
-                    e.printStackTrace(System.err);
-                    //System.exit(1);
-                }
-            }
-        }
-    }
 }
-
-// Local Variables:
-// tab-width: 8
-// End:

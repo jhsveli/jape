@@ -31,11 +31,12 @@ public class ItemExemplar {
     public static final int KEY_CATEGORY = 17;
     public static final int MONEY_CATEGORY = 18;
 
+    // TODO: Fix hashtable two-way lookup pattern
     public static Hashtable nameTable = new Hashtable();
     public static Hashtable exemplarTable = new Hashtable();
-    public static Vector nameList = new Vector();
-    public static Vector ammoNameList = new Vector();
-    public static Vector attachmentNameList = new Vector();
+    public static Vector<String> nameList = new Vector<>();
+    public static Vector<String> ammoNameList = new Vector<>();
+    public static Vector<String> attachmentNameList = new Vector<>();
 
     static {
         ammoNameList.addElement("None");
@@ -394,30 +395,19 @@ public class ItemExemplar {
                 ammoNameList.addElement(this.name);
                 break;
 
-            case WEAPON_ATTACHMENT_CATEGORY:
-                attachmentNameList.addElement(this.name);
-                break;
-
-            case ARMOR_ATTACHMENT_CATEGORY:
-                attachmentNameList.addElement(this.name);
-                break;
-
-            case GRENADE_CATEGORY:
-                attachmentNameList.addElement(this.name);
-                break;
-
-            case DETONATOR_CATEGORY:
+            case WEAPON_ATTACHMENT_CATEGORY, ARMOR_ATTACHMENT_CATEGORY, GRENADE_CATEGORY, DETONATOR_CATEGORY:
                 attachmentNameList.addElement(this.name);
                 break;
 
         }
 
-        // Register item type
-        nameTable.put(name, Integer.valueOf(id));
-        nameTable.put(Integer.valueOf(id), name);
+        // TODO: Fix hashtable two-way lookup pattern
+        nameTable.put(name, id);
+        nameTable.put(id, name);
 
+        // TODO: Fix hashtable two-way lookup pattern
         exemplarTable.put(name, this);
-        exemplarTable.put(Integer.valueOf(id), this);
+        exemplarTable.put(id, this);
 
         nameList.addElement(this.name);
     }

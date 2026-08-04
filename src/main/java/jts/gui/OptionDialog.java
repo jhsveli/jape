@@ -8,8 +8,6 @@ package jts.gui;/*
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
@@ -52,28 +50,11 @@ public class OptionDialog extends JDialog {
      */
     public static final int ERROR_MESSAGE = 0;
     /**
-     * Used for information messages.
-     */
-    public static final int INFORMATION_MESSAGE = 1;
-    /**
      * Used for warning messages.
      */
     public static final int WARNING_MESSAGE = 2;
-    /**
-     * Used for questions.
-     */
-    public static final int QUESTION_MESSAGE = 3;
-    /**
-     * No icon is used.
-     */
-    public static final int PLAIN_MESSAGE = -1;
 
-    /**
-     * Member variables
-     **/
-    private final int optionType;
-    private final int messageType;
-    private int value = CLOSED_OPTION;
+    private int value;
 
     public OptionDialog(
             Component parent,
@@ -89,8 +70,6 @@ public class OptionDialog extends JDialog {
                 Dialog.ModalityType.APPLICATION_MODAL);
 
         // Set fields
-        this.optionType = optionType;
-        this.messageType = messageType;
         this.value = CLOSED_OPTION;
 
         // Create body panel
@@ -116,50 +95,7 @@ public class OptionDialog extends JDialog {
         }
 
         // Button bar
-        JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
-        buttonPanel.setLayout(new FlowLayout());
-
-        // Various buttons
-        if (this.optionType == OK_ONLY_OPTION ||
-                this.optionType == OK_CANCEL_OPTION) {
-            JButton button = new JButton("OK");
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    setValue(OK_OPTION);
-                }
-            });
-            buttonPanel.add(button);
-        }
-        if (this.optionType == YES_NO_OPTION ||
-                this.optionType == YES_NO_CANCEL_OPTION) {
-            JButton button = new JButton("Yes");
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    setValue(YES_OPTION);
-                }
-            });
-            buttonPanel.add(button);
-        }
-        if (this.optionType == YES_NO_OPTION ||
-                this.optionType == YES_NO_CANCEL_OPTION) {
-            JButton button = new JButton("No");
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    setValue(NO_OPTION);
-                }
-            });
-            buttonPanel.add(button);
-        }
-        if (this.optionType == OK_CANCEL_OPTION ||
-                this.optionType == YES_NO_CANCEL_OPTION) {
-            JButton button = new JButton("Cancel");
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    setValue(CANCEL_OPTION);
-                }
-            });
-            buttonPanel.add(button);
-        }
+        JPanel buttonPanel = buttonBar(optionType);
 
         // Add elements to dialog
         body.add(buttonPanel, BorderLayout.SOUTH);
@@ -175,16 +111,46 @@ public class OptionDialog extends JDialog {
         this.pack();
 
         // Put this dialog in the center of the parent frame
-        if (parent != null) {
-            Point parentLoc = parent.getLocation();
-            Dimension parentSize = parent.getSize();
-            Dimension size = this.getSize();
-            Point loc = new Point(
-                    parentLoc.x + (parentSize.width - size.width) / 2,
-                    parentLoc.y + (parentSize.height - size.height) / 2
-            );
-            this.setLocation(loc);
+        Point parentLoc = parent.getLocation();
+        Dimension parentSize = parent.getSize();
+        Dimension size = this.getSize();
+        Point loc = new Point(
+                parentLoc.x + (parentSize.width - size.width) / 2,
+                parentLoc.y + (parentSize.height - size.height) / 2
+        );
+        this.setLocation(loc);
+    }
+
+    private JPanel buttonBar(int optionType) {
+        JPanel buttonPanel = new InsetPanel(0, 5, 0, 5);
+        buttonPanel.setLayout(new FlowLayout());
+
+        // Various buttons
+        if (optionType == OK_ONLY_OPTION ||
+                optionType == OK_CANCEL_OPTION) {
+            JButton button = new JButton("OK");
+            button.addActionListener(e -> setValue(OK_OPTION));
+            buttonPanel.add(button);
         }
+        if (optionType == YES_NO_OPTION ||
+                optionType == YES_NO_CANCEL_OPTION) {
+            JButton button = new JButton("Yes");
+            button.addActionListener(e -> setValue(YES_OPTION));
+            buttonPanel.add(button);
+        }
+        if (optionType == YES_NO_OPTION ||
+                optionType == YES_NO_CANCEL_OPTION) {
+            JButton button = new JButton("No");
+            button.addActionListener(e -> setValue(NO_OPTION));
+            buttonPanel.add(button);
+        }
+        if (optionType == OK_CANCEL_OPTION ||
+                optionType == YES_NO_CANCEL_OPTION) {
+            JButton button = new JButton("Cancel");
+            button.addActionListener(e -> setValue(CANCEL_OPTION));
+            buttonPanel.add(button);
+        }
+        return buttonPanel;
     }
 
     public int getValue() {
